@@ -1,0 +1,16 @@
+# targets.yaml — the companies you'd actually go to. PRD §4.1, §4.3.
+# Copy to profile/targets.yaml. `ats` is the adapter; `slug` is the board slug.
+#
+# Finding the slug: it's in the careers-page URL.
+#   boards.greenhouse.io/SLUG   ·   jobs.lever.co/SLUG   ·   jobs.ashbyhq.com/SLUG
+#   apply.workable.com/SLUG     ·   jobs.smartrecruiters.com/SLUG
+#
+# ats ∈ { greenhouse, lever, ashby, workable, smartrecruiters }
+
+companies:
+  - slug: example-co
+    ats: greenhouse
+  - slug: another-co
+    ats: lever
+  - slug: third-co
+    ats: ashby
