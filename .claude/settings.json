@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(python3 bin/fetch.py:*)",
+      "Bash(python3 bin/render.py:*)",
+      "Bash(python3 bin/seen.py:*)",
+      "Bash(python3 bin/validate.py:*)",
+      "Bash(python3 bin/tracker.py:*)",
+      "Bash(python3 -m pytest:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git mv:*)",
+      "Bash(git rm:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git push:*)"
+    ],
+    "deny": [
+      "Bash(git merge:*)",
+      "Bash(gh pr merge:*)"
+    ]
+  }
+}
