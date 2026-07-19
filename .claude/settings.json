@@ -27,7 +27,10 @@
       "Bash(git rm:*)",
       "Bash(git status)",
       "Bash(git diff:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git fetch:*)",
+      "Bash(git rebase:*)"
     ],
     "deny": [
       "Bash(git merge:*)",

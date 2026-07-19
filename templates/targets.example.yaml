@@ -4,8 +4,20 @@
 # Finding the slug: it's in the careers-page URL.
 #   boards.greenhouse.io/SLUG   ·   jobs.lever.co/SLUG   ·   jobs.ashbyhq.com/SLUG
 #   apply.workable.com/SLUG     ·   jobs.smartrecruiters.com/SLUG
+#   SLUG.recruitee.com          ·   careers.pageuppeople.com/SLUG/...
 #
-# ats ∈ { greenhouse, lever, ashby, workable, smartrecruiters }
+# ats ∈ { greenhouse, lever, ashby, workable, smartrecruiters,
+#         recruitee, workday, oracle, pageup, teamtailor }
+#
+# The first five are the common ATSes and need no extra setup. The other five
+# reach additional hosts — if you use one, add its host to the environment
+# allowlist too (docs/ENVIRONMENT.md §1), or the sweep silently skips it. Their
+# slug shapes differ:
+#   workday   — "tenant/dc/site"        e.g. commbank/wd3/CommBankCareers
+#   oracle    — "host/site"             e.g. ebuu.fa.ap1.oraclecloud.com/CX
+#   teamtailor— the board's own host    e.g. careers.mantelgroup.com.au
+#   recruitee — the company slug        e.g. acme  (-> acme.recruitee.com)
+#   pageup    — the path from the URL    e.g. 410/fb/en
 
 companies:
   - slug: example-co
@@ -14,3 +26,19 @@ companies:
     ats: lever
   - slug: third-co
     ats: ashby
+
+# location_filter (optional) — case-insensitive regexes applied at FETCH time,
+# before triage ever sees a posting. A posting is kept if any pattern matches
+# its location string; a posting with no location string is always kept (it
+# goes to triage, which can judge it). This is bookkeeping, not judgment: it
+# scopes which postings enter the queue at all. Leave it out and every office
+# worldwide from a big board (e.g. Stripe lists hundreds) floods triage — the
+# most expensive way to reject a London role is to score it first. Set it to
+# the places you'd actually work. Omit entirely to keep everything.
+#
+# location_filter:
+#   - sydney
+#   - melbourne
+#   - australia
+#   - '\bAU\b'
+#   - remote

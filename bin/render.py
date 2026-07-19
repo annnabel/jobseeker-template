@@ -25,6 +25,25 @@ import tempfile
 import yaml
 
 
+def _contact_values(contact: dict):
+    """Yield contact strings in display order, flattening list-valued fields.
+
+    `contact.links` is naturally a YAML list (a person has several profiles);
+    a bare `str(list)` would print `['https://…']` into the resume. Flatten so
+    each link is its own entry. Scalar fields pass through unchanged.
+    """
+    for key in ("email", "phone", "location", "links"):
+        value = contact.get(key)
+        if not value:
+            continue
+        if isinstance(value, (list, tuple)):
+            for item in value:
+                if item:
+                    yield str(item)
+        else:
+            yield str(value)
+
+
 def _esc(text: str) -> str:
     """Escape Typst special characters in plain content."""
     out = str(text)
@@ -39,9 +58,7 @@ def build_typst(variant: dict) -> str:
     """
     name = variant.get("name", "")
     contact = variant.get("contact", {}) or {}
-    contact_line = "  |  ".join(
-        str(v) for v in (contact.get(k) for k in ("email", "phone", "location", "links")) if v
-    )
+    contact_line = "  |  ".join(_contact_values(contact))
 
     lines: list[str] = [
         '#set text(font: "Helvetica", size: 10.5pt)',
@@ -85,9 +102,7 @@ def build_markdown(variant: dict) -> str:
     """
     name = variant.get("name", "")
     contact = variant.get("contact", {}) or {}
-    contact_line = " | ".join(
-        str(v) for v in (contact.get(k) for k in ("email", "phone", "location", "links")) if v
-    )
+    contact_line = " | ".join(_contact_values(contact))
 
     lines: list[str] = [f"# {name}", ""]
     if contact_line:

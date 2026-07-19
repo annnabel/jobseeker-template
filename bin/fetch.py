@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 
@@ -130,6 +131,22 @@ def main(argv: list[str] | None = None) -> int:
     if not targets:
         print("no targets configured", file=sys.stderr)
         return 0
+
+    # Validate location_filter regexes up front. A bad pattern raises re.error
+    # inside every per-target block (location_matches runs for all of them),
+    # which fetch_all counts as an adapter failure — so a single typo'd regex
+    # would trip the "all adapters failed" abort and read as a broken
+    # environment. Surface it as the config error it is instead.
+    for pattern in location_filter:
+        try:
+            re.compile(pattern)
+        except re.error as exc:
+            print(
+                f"error: invalid location_filter regex {pattern!r} in "
+                f"profile/targets.yaml: {exc}",
+                file=sys.stderr,
+            )
+            return 2
 
     seen = load_seen(args.root)
     print(f"loaded {len(seen)} seen fingerprints", file=sys.stderr)
