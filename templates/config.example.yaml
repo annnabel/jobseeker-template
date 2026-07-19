@@ -8,6 +8,14 @@ scoring:
   # More survivors than this -> raise the threshold for THAT RUN ONLY and say
   # so in the PR body. Never write the raised threshold back to config. §9.
   queue_cap: 6
+  # Near-miss band. Postings scoring in [threshold - near_miss_band, threshold)
+  # aren't killed silently: the closest few surface as a separate `near_miss`
+  # tier the human judges at Gate 1 (/choose), each with the gap that sank it.
+  # This keeps a 100%-kill night from looking like a quiet one. Near misses
+  # never auto-shortlist and never count toward queue_cap. Set to 0 to disable.
+  near_miss_band: 15
+  # Hard ceiling on near-miss entries per run — the closest N by score.
+  near_miss_cap: 4
 
 cover:
   # A letter competes with the resume for the same 40 seconds. Default 250.

@@ -4,7 +4,7 @@
     seen.py status  [--root .]
     seen.py check   [--root .] [ENTRY ...] [--fingerprint FP]
                     [--company C --title T [--location L]]
-    seen.py mark    --disposition {killed,shortlisted} [--date YYYY-MM-DD]
+    seen.py mark    --disposition {killed,shortlisted,near_miss} [--date YYYY-MM-DD]
                     [--root .] ENTRY [ENTRY ...]
     seen.py audit   [--root .] [--date YYYY-MM-DD]
 
@@ -24,8 +24,9 @@ so a retried sweep step cannot double-write. `audit` cross-checks the queue
 against the index and exits 1 if a swept role has no seen record — the exact
 failure mode that lets the next sweep re-triage the same job. With `--date`
 it also checks the reverse direction for that day's shard: every entry marked
-`shortlisted` must still have a queue (or applied/) directory, catching a run
-that marked roles seen and then crashed before recording them anywhere.
+`shortlisted` or `near_miss` (both name a role queued to queue/shortlist) must
+still have a queue (or applied/) directory, catching a run that marked roles
+seen and then crashed before recording them anywhere.
 
 Seen-state is a fact, not a proposal: commit the shard to `main`, never to a
 PR (red line 8).
@@ -253,11 +254,14 @@ def cmd_audit(args: argparse.Namespace) -> int:
                   "WILL re-triage it. "
                   f"Fix: python3 bin/seen.py mark --disposition shortlisted {rel}")
 
-    # Reverse check (--date): every `shortlisted` row in that day's shard must
-    # still be recorded somewhere durable — queue/shortlist, queue/ready, or
-    # applied/. A row with no directory means the run marked the role seen and
-    # then crashed before writing it anywhere: seen, never queued, gone
-    # silently (PRD §6) — exactly what mark-last exists to prevent.
+    # Reverse check (--date): every `shortlisted` or `near_miss` row in that
+    # day's shard must still be recorded somewhere durable — queue/shortlist,
+    # queue/ready, or applied/. Both dispositions name a role the sweep queued
+    # to queue/shortlist (a survivor, or a sub-threshold near miss surfaced for
+    # Gate 1); only `killed` roles are queued nowhere. A row with no directory
+    # means the run marked the role seen and then crashed before writing it
+    # anywhere: seen, never queued, gone silently (PRD §6) — exactly what
+    # mark-last exists to prevent.
     if args.date:
         shard_path = os.path.join(args.root, SEEN_DIR, f"{args.date}.jsonl")
         recorded = _recorded_fingerprints(args.root)
@@ -271,12 +275,13 @@ def cmd_audit(args: argparse.Namespace) -> int:
                         row = json.loads(line)
                     except json.JSONDecodeError:
                         continue
-                    if row.get("disposition") != "shortlisted":
+                    if row.get("disposition") not in ("shortlisted", "near_miss"):
                         continue
                     if row.get("fingerprint") not in recorded:
                         problems += 1
                         print(f"LOST  {row.get('company', '?')} · {row.get('title', '?')}: "
-                              f"marked shortlisted in {os.path.relpath(shard_path, args.root)} "
+                              f"marked {row.get('disposition', '?')} in "
+                              f"{os.path.relpath(shard_path, args.root)} "
                               "but no queue/ or applied/ entry exists — seen but never "
                               "queued; it will never be re-triaged. Restore its "
                               "queue/shortlist/<slug>/ directory (jd.md + meta.yaml).")
@@ -318,7 +323,8 @@ def main(argv: list[str] | None = None) -> int:
     p_mark = sub.add_parser("mark", help="append terminal dispositions to today's shard")
     p_mark.add_argument("files", nargs="+", metavar="ENTRY",
                         help="raw posting JSON, queue meta.yaml, or queue dir")
-    p_mark.add_argument("--disposition", required=True, choices=["killed", "shortlisted"])
+    p_mark.add_argument("--disposition", required=True,
+                        choices=["killed", "shortlisted", "near_miss"])
     p_mark.add_argument("--date", help="shard date, default today (YYYY-MM-DD)")
     p_mark.add_argument("--root", default=".")
     p_mark.set_defaults(fn=cmd_mark)
@@ -326,7 +332,7 @@ def main(argv: list[str] | None = None) -> int:
     p_audit = sub.add_parser("audit", help="cross-check queue/ against the index")
     p_audit.add_argument("--root", default=".")
     p_audit.add_argument("--date", help="also reverse-check this day's shard: every "
-                         "shortlisted row must have a queue/ or applied/ entry")
+                         "shortlisted or near_miss row must have a queue/ or applied/ entry")
     p_audit.set_defaults(fn=cmd_audit)
 
     args = parser.parse_args(argv)

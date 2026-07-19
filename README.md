@@ -26,6 +26,35 @@ Think of it as a very careful assistant that:
 - **Tracks everything.** A simple spreadsheet (`tracker.csv`) shows every
   application and its status. It updates itself; you never edit it.
 
+## Which job boards the sweep can reach
+
+The sweep only ever talks to the **official public job-listing APIs** that
+companies' own careers pages are built on — never LinkedIn, Indeed, or
+anything behind a login. Today it covers ten of these systems, which between
+them power most mid-to-large employers' careers pages:
+
+**Greenhouse · Lever · Ashby · Workable · SmartRecruiters · Recruitee ·
+Workday · Oracle Recruiting Cloud · PageUp · Teamtailor**
+
+**What it deliberately can't reach — and why:**
+
+- **LinkedIn, Indeed, Seek, Glassdoor, and anything behind a login.** These
+  forbid scraping and need an account; reaching them would break the "never
+  scrape, never log in" rule the whole system is built on. Found a role there?
+  Just paste it in with **`/add`** — same honest draft, same review.
+- **Employers on a job system not in the list above.** A few older or niche
+  systems publish no open API. Each system the sweep supports is one small
+  adapter file, so a new one can be added when it's worth it; until then those
+  boards are reached the same way — by hand, with `/add`.
+- **Even on the boards it does cover, the sweep shows you less on purpose.**
+  It skips anything outside your locations, older than 30 days, already seen in
+  a past run, or scoring below your quality bar — so the morning shortlist is
+  only fresh, in-region, unseen roles worth a look, not every opening.
+
+The takeaway: the sweep is a **wide first pass** across the boards it can reach
+automatically, and **`/add`** covers everything else. Nothing good is lost — it
+just arrives by a different door.
+
 ## What it will never do
 
 These rules are built in and non-negotiable:
