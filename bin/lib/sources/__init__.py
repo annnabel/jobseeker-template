@@ -18,6 +18,11 @@ ADAPTERS = {
     "ashby": "sources.ashby",
     "workable": "sources.workable",
     "smartrecruiters": "sources.smartrecruiters",
+    "recruitee": "sources.recruitee",
+    "workday": "sources.workday",
+    "oracle": "sources.oracle",
+    "pageup": "sources.pageup",
+    "teamtailor": "sources.teamtailor",
 }
 
 
