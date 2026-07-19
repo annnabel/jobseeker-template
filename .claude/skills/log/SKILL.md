@@ -30,9 +30,11 @@ almost always just true.
 ## Always, after any change
 ```
 python3 bin/tracker.py            # applied/ + queue/ready/ -> tracker.csv
-git add applied/ queue/ tracker.csv meta changes
+git add applied/ queue/ tracker.csv
 git commit -m "log: <role> -> <status>"
 ```
+(The `git add` covers the moved directory, the edited `meta.yaml`, and the
+regenerated `tracker.csv` — they all live under those paths.)
 `tracker.csv` must never appear in a hand-authored commit — only as
 tracker.py's output. Delete it, regenerate, and you get a byte-identical file.
 

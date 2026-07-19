@@ -122,9 +122,17 @@ def _request_json(
             return resp.json()
         except (httpx.TransportError, httpx.HTTPStatusError) as exc:
             last_exc = exc
+            resp = getattr(exc, "response", None)
+            status = getattr(resp, "status_code", None)
+            # Fail fast on a genuine non-retryable HTTP status — a 404 (wrong
+            # board slug), 401, or 400 will never succeed on retry, and three
+            # backoff sleeps per bad target just slow the sweep and muddy the
+            # "one dead adapter" signal. TransportError (status is None) and the
+            # statuses we flagged retryable above (429/403/5xx) still retry.
+            retryable = status is None or status in (429, 403) or status >= 500
+            if not retryable:
+                raise
             if attempt < MAX_RETRIES - 1:
-                resp = getattr(exc, "response", None)
-                status = getattr(resp, "status_code", None)
                 time.sleep(_backoff(status, attempt))
     assert last_exc is not None
     raise last_exc

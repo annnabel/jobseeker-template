@@ -18,6 +18,33 @@ api.smartrecruiters.com
 jobs.ashbyhq.com
 ```
 
+These five hosts cover the five common ATSes (Greenhouse, Lever, Ashby,
+Workable, SmartRecruiters). The sweep silently reaches only the boards whose
+host is on the allowlist — an adapter blocked by the network policy logs a
+warning and the run continues (the sweep names failed boards in its report,
+PRD §17.4), so a missing host reads as "that board found nothing", not an
+error. If you add none of the boards below, you need nothing more.
+
+**Additional ATS hosts — add only the ones you actually target.** The
+repo ships adapters for five more providers (`recruitee`, `workday`,
+`oracle`, `pageup`, `teamtailor` — see `templates/targets.example.yaml`).
+They reach different hosts, several of them per-tenant subdomains, so add a
+host only when a company in your `targets.yaml` uses that ATS:
+
+```
+*.recruitee.com          # recruitee  (each company is <slug>.recruitee.com)
+*.myworkdayjobs.com      # workday    (tenant.<dc>.myworkdayjobs.com)
+*.oraclecloud.com        # oracle     (the Fusion pod host in your slug)
+careers.pageuppeople.com # pageup
+```
+
+`teamtailor` boards are served from each company's **own** careers host (e.g.
+`careers.mantelgroup.com.au`), so there is no single host to add — allowlist
+that company's careers domain when you target it. If your allowlist UI does
+not accept `*.` wildcards, add the exact subdomain from the board's URL
+instead. A board whose host you did not add simply returns nothing; nothing
+breaks.
+
 **Avoid Full — for the sweep's environment.** A tight allowlist is a
 structural guarantee that an unattended agent can't POST your data somewhere
 unexpected. This is the constraint that makes sweep-time company research

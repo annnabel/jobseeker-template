@@ -17,9 +17,10 @@ derived, not a decision).
    applied to yet. Sort by `closes:` date; a role closing soon is always the
    top action.
 2. **Shortlisted roles awaiting a pick or a tailor** — `queue/shortlist/*/
-   meta.yaml` on `main` (pull first). `status: shortlisted` entries mean the
-   sweep found them but nobody picked: the action is `/choose` in a fresh
-   session (Gate 1). `status: kept` entries mean the pick happened but
+   meta.yaml` on `main` (pull first). `status: shortlisted` (survivors) and
+   `status: near_miss` (below-threshold roles the sweep surfaced for the human
+   to judge) both mean nobody has picked yet: the action is `/choose` in a
+   fresh session (Gate 1). `status: kept` entries mean the pick happened but
    `/tailor` hasn't run: the action is `/tailor`.
 3. **In-flight branches / open PRs** — `git branch -r` for `add/*`, and open
    PRs. An `add/*` branch with drafts not yet walked through is a `/review`

@@ -24,17 +24,42 @@ Read **only** `queue/shortlist/*/meta.yaml` — never the `jd.md` files. The
 meta has everything a pick needs: triage score, reason, red flags, top-5 JD
 keywords, referral match, company-note presence.
 
-- **Empty shortlist** → say "nothing to choose — the queue is empty" and
-  point at `/next`. Stop.
-- Entries already `status: kept` (a prior `/choose` that wasn't tailored yet)
-  → list them separately as "already kept, awaiting /tailor"; don't re-ask.
+Sort the entries by their `status:` field into three groups — the sweep writes
+it, and the groups are not interchangeable:
+
+- **`status: shortlisted`** — survivors, scored at or above the threshold. The
+  main pick list.
+- **`status: near_miss`** — scored *below* the threshold, surfaced by the sweep
+  only so a thin night isn't silent (PRD §15). Each carries a `miss_reason:`
+  line — the one thing that kept it under the bar. These are **not** the
+  sweep's recommendations; they exist for you to overrule the threshold if you
+  want to, nothing more.
+- **`status: kept`** — a prior `/choose` already picked these and `/tailor`
+  hasn't run yet. List them separately as "already kept, awaiting /tailor";
+  don't re-ask.
+
+- **Empty shortlist** (no entries at all) → say "nothing to choose — the queue
+  is empty" and point at `/next`. Stop.
 
 ## Step 2 — present the queue
 
-One block per role, compact enough to skim on a phone: company, title,
-location, triage score + reason, red flags, keywords, referral match, and
-`[GAP] No company note` where the note is missing. Number the blocks so the
-human can answer "keep 1 and 3, kill the rest".
+Present the two groups **separately and labelled**, so a below-threshold role
+is never mistaken for a survivor.
+
+First, **Shortlist (met the bar)** — the `status: shortlisted` entries. One
+block per role, compact enough to skim on a phone: company, title, location,
+triage score + reason, red flags, keywords, referral match, and
+`[GAP] No company note` where the note is missing.
+
+Then, only if any exist, **Closest misses (below the bar)** — the
+`status: near_miss` entries, in their own clearly-headed section. Same fields,
+plus the `miss_reason:` line, and say plainly these scored *below* the
+threshold and are surfaced only so you can judge them — the sweep is not
+recommending them. If there are none, omit the section entirely.
+
+Number every block across both sections so the human can answer "keep 1 and 3,
+kill the rest" — a near miss is picked exactly the same way a survivor is; the
+label just tells the human what they're overruling.
 
 If the human asks for more detail on a specific role ("show me the JD for
 the Torrens one"), *then* read that one `jd.md` — on request only, one at a

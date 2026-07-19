@@ -18,8 +18,11 @@ scoring:
   near_miss_cap: 4
 
 cover:
-  # A letter competes with the resume for the same 40 seconds. Default 250.
-  max_words: 250
+  # Cover-letter length ceiling. Raised to 450 in PRD §15.2/§15.5 when tailoring
+  # became interactive: the tailor targets 300–450 words (see agents/tailor.md),
+  # so a lower ceiling here just makes every letter overshoot its own limit.
+  # Lower it only if you genuinely want shorter letters than the tailor writes.
+  max_words: 450
 
 tracker:
   # Applied + silent this many days -> auto-ghosted. Silence needs no /log. G4.

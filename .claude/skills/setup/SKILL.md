@@ -38,7 +38,11 @@ first-person cover voice. This is the tailor's TONE parameter, written once.
 ### 4. `profile/config.yaml` — behaviour
 Copy `templates/config.example.yaml`. Interview for `constraints` (comp floor,
 remote, dealbreakers), `scoring.threshold`, `scoring.queue_cap`,
-`cover.max_words`, `tracker.ghost_days`.
+`cover.max_words`, `tracker.ghost_days`. The template defaults for
+`scoring.near_miss_band` / `scoring.near_miss_cap` (the tier that surfaces the
+closest below-threshold roles at Gate 1 so a thin night isn't silent) are
+sensible as-is — mention they exist and can be tuned, but don't belabour them;
+set `near_miss_band: 0` if the user wants triage to be a hard cut.
 
 ### 5. `profile/targets.yaml` — companies (Phase 4)
 Copy `templates/targets.example.yaml`. For each company the user names, find its

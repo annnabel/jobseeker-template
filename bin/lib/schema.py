@@ -9,7 +9,7 @@ from __future__ import annotations
 import hashlib
 import re
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 def normalize_title(title: str) -> str:
@@ -42,6 +42,23 @@ class Posting(BaseModel):
     department: str = ""
     updated_at: str = ""
     description: str = ""
+
+    @field_validator(
+        "source", "slug", "company", "title", "location", "url",
+        "department", "updated_at", "description", mode="before",
+    )
+    @classmethod
+    def _none_to_empty(cls, v: object) -> object:
+        """Coerce a null JSON value to "".
+
+        ATS payloads frequently carry an explicit `null` for a field an adapter
+        reads (`location: null`, a missing `name`). `dict.get(k, "")` returns
+        that None, and a None reaching a `str` field would raise and sink the
+        WHOLE board (fetch.py counts it as one adapter failure — PRD §8.1).
+        Coercing here, at the one place every adapter funnels through, keeps a
+        single null field from costing a company's entire posting list.
+        """
+        return "" if v is None else v
 
     def fingerprint(self) -> str:
         """Stable identity: sha256(company + normalized_title + location).

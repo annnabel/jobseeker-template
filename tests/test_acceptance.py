@@ -211,6 +211,129 @@ def test_freshness_filter():
     assert parse_updated_at("") is None
 
 
+# ── schema.py null-coalescing (adapter robustness) ─────────────────────────
+
+
+def test_posting_coerces_null_fields():
+    # An ATS payload with an explicit null for a read field must not sink the
+    # whole board: Posting coerces None -> "" so one bad field costs nothing.
+    sys.path.insert(0, os.path.join(BIN, "lib"))
+    from schema import Posting
+
+    p = Posting(
+        source="greenhouse", slug="acme", company="acme",
+        title=None, location=None, url=None, department=None,
+        updated_at=None, description=None,
+    )
+    assert p.title == "" and p.location == "" and p.description == ""
+    # A fingerprint is still derivable (no crash on the None-turned-empty).
+    assert len(p.fingerprint()) == 64
+
+
+# ── render.py contact links (list-valued fields) ───────────────────────────
+
+
+def test_render_flattens_contact_links(tmp_path):
+    variant = tmp_path / "variant.yaml"
+    variant.write_text(
+        "name: Pat Doe\n"
+        "contact:\n"
+        "  email: pat@example.com\n"
+        "  links:\n"
+        "    - github.com/pat\n"
+        "    - linkedin.com/in/pat\n"
+        "sections:\n"
+        "  - heading: Summary\n"
+        "    bullets:\n"
+        "      - text: Builds reliable systems.\n"
+        "        ev: ev:0001\n",
+        encoding="utf-8",
+    )
+    out = tmp_path / "resume.md"
+    r = run("render.py", str(variant), "-o", str(out))
+    assert r.returncode == 0, r.stderr
+    text = out.read_text(encoding="utf-8")
+    # Each link appears as its own entry, never as a Python list repr.
+    assert "github.com/pat" in text
+    assert "linkedin.com/in/pat" in text
+    assert "['" not in text and "']" not in text
+
+
+# ── _http.py retry scope (fail fast on non-retryable 4xx) ──────────────────
+
+
+def test_http_fails_fast_on_404(monkeypatch):
+    sys.path.insert(0, os.path.join(BIN, "lib"))
+    import time as _time
+
+    import httpx
+
+    from sources import _http
+
+    calls = {"n": 0}
+
+    def fake_request(method, url, **kwargs):
+        calls["n"] += 1
+        req = httpx.Request(method, url)
+        return httpx.Response(404, request=req, json={"error": "not found"})
+
+    slept = {"n": 0}
+    monkeypatch.setattr(httpx, "request", fake_request)
+    monkeypatch.setattr(_time, "sleep", lambda *_: slept.__setitem__("n", slept["n"] + 1))
+
+    try:
+        _http.get_json("https://boards-api.greenhouse.io/v1/boards/nope/jobs")
+    except httpx.HTTPStatusError:
+        pass
+    else:
+        raise AssertionError("expected a 404 to raise")
+    # One attempt, no retries, no backoff sleeps for a genuine 404.
+    assert calls["n"] == 1, calls
+    assert slept["n"] == 0, slept
+
+
+def test_http_retries_on_500(monkeypatch):
+    sys.path.insert(0, os.path.join(BIN, "lib"))
+    import time as _time
+
+    import httpx
+
+    from sources import _http
+
+    calls = {"n": 0}
+
+    def fake_request(method, url, **kwargs):
+        calls["n"] += 1
+        req = httpx.Request(method, url)
+        return httpx.Response(503, request=req, json={})
+
+    monkeypatch.setattr(httpx, "request", fake_request)
+    monkeypatch.setattr(_time, "sleep", lambda *_: None)
+
+    try:
+        _http.get_json("https://boards-api.greenhouse.io/v1/boards/x/jobs")
+    except httpx.HTTPStatusError:
+        pass
+    # A 5xx is transient: it exhausts MAX_RETRIES attempts.
+    assert calls["n"] == _http.MAX_RETRIES, calls
+
+
+# ── fetch.py location_filter validation ────────────────────────────────────
+
+
+def test_fetch_rejects_bad_location_regex(tmp_path):
+    profile = tmp_path / "profile"
+    profile.mkdir()
+    (profile / "targets.yaml").write_text(
+        "companies:\n  - slug: acme\n    ats: greenhouse\n"
+        "location_filter:\n  - '['\n",  # unbalanced bracket -> re.error
+        encoding="utf-8",
+    )
+    r = run("fetch.py", "--dry-run", "--root", str(tmp_path))
+    assert r.returncode == 2, r.stderr
+    assert "invalid location_filter regex" in r.stderr
+
+
 # ── tracker.py determinism (Phase 7 invariant) ─────────────────────────────
 
 
