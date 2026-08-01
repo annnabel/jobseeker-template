@@ -1,4 +1,4 @@
-# Annabel's Jobseeker
+# Jobseeker
 
 **A job-search assistant that runs inside Claude Code.** It finds job postings,
 drafts a tailored resume and cover letter for the ones you pick, checks every
@@ -6,7 +6,11 @@ claim against facts you provided, and keeps a tracker of where each application
 is up to. You review everything, and **you always click "apply" yourself, in
 your own browser**.
 
-Created by **Annabel Nguyen**.
+It works from **where you want to go**, not just where you've been — so it fits
+a graduate, a career changer, and someone after the next rung of the same
+ladder equally well. Whatever your field.
+
+Created by **Annabel Nguyen**. MIT licensed — copy it, change it, keep it.
 
 ---
 
@@ -14,6 +18,12 @@ Created by **Annabel Nguyen**.
 
 Think of it as a very careful assistant that:
 
+- **Knows what you're aiming at.** Setup asks you to name one to three *career
+  tracks* — the jobs you actually want, in your words. Everything downstream
+  scores roles against those, not against your last job title. If a track is a
+  **change of direction**, you say so, name the experience that genuinely
+  carries across, and name what you're missing; drafts then lead with the
+  transferable work and state the gap plainly instead of writing around it.
 - **Finds roles for you.** Either you paste in a job ad you found anywhere
   (`/add`), or an optional nightly sweep checks the public job boards of
   companies you choose and leaves you a morning shortlist.
@@ -90,12 +100,14 @@ simple commands like `/setup` and `/add` into a Claude Code chat.
 3. **Configure the environment** (only needed for the automated sweep, but
    quick): follow `docs/ENVIRONMENT.md` — it's a copy-paste of a short list of
    allowed websites and a 4-line setup script into the environment settings.
-4. **Run `/setup`.** This is the big one: Claude interviews you about your
-   career, a few questions at a time, and builds your "evidence bank" — the
-   master list of everything true about you that all future resumes draw
-   from. Budget a relaxed hour or three; you can stop and pick it up later.
-   Honest answers matter more than impressive ones — the system is designed
-   so drafts can only use what's in the bank.
+4. **Run `/setup`.** This is the big one. Claude asks first about **where you
+   want to go** (your career tracks — 20 minutes), then interviews you about
+   your career a few questions at a time to build your "evidence bank": the
+   master list of everything true about you that all future resumes draw from.
+   Budget a relaxed hour or three; you can stop and pick it up later. Honest
+   answers matter more than impressive ones — the system is designed so drafts
+   can only use what's in the bank. Not every accomplishment needs a number,
+   and a shorter honest bank beats a padded one.
 5. **Try it.** Find a job ad anywhere, run `/add`, and paste the ad in.
    You'll get an honest fit read, and if you say "go", a tailored draft to
    review right there in the chat.
@@ -159,10 +171,49 @@ PRD.md       The full design document, if you're curious how it all works
 CLAUDE.md    The safety rules Claude must obey in this repo
 ```
 
+## Changing direction, or aiming at two things at once
+
+Your career tracks live in `profile/goals.yaml`, and they are meant to be
+edited. Open it (or just ask Claude in a session) when:
+
+- **You're pivoting.** Set `pivot: true` on the track, write `transferable` —
+  which of your experience genuinely carries across, in your own words — and
+  `known_gaps`, what you plainly don't have yet. Both are honest-answer
+  fields. A padded `transferable` produces a resume that wins an interview you
+  can't survive, which is the one thing this system exists to prevent.
+- **You're open to two directions.** Add a second track. The shortlist is
+  grouped by track so you can see how each is doing. Three is the practical
+  limit; past that the shortlist stops meaning anything.
+- **A track keeps coming up empty.** Usually its `titles` are too narrow, or
+  no company in `targets.yaml` hires for it. `/next` will point this out.
+
+Nothing edits this file but you. Claude reads your goals, reports when a track
+isn't working, and leaves the decision alone.
+
+## Getting improvements later
+
+Your copy is a snapshot. Fixes made to the template afterwards don't reach it
+by themselves — ask Claude in a session:
+
+> Pull the latest changes from the upstream template, but keep everything in
+> `profile/`, `queue/`, `applied/`, `state/` and `tracker.csv` exactly as it is.
+
+(Under the hood that's `git remote add upstream <template-url>` then a fetch
+and merge. Your data lives in directories the template never touches, so
+conflicts are rare and confined to `bin/`, `.claude/`, `docs/` and `templates/`.)
+
+## Sharing it on
+
+Point people at the template repo, not at your copy — your copy has your career
+history in it. They click **Use this template**, make it **private**, and run
+`/setup`. Their goals, evidence, and companies are entirely their own; nothing
+about your search is carried across.
+
 ## Good to know
 
 - **Your data stays in your private repo.** This template contains no
-  personal data, and your copy should stay private because it will.
+  personal data (CI enforces that), and your copy should stay private because
+  it will.
 - **Everything is saved in Git automatically.** Every draft, decision, and
   status change is committed, so nothing is ever lost and you can always see
   history on GitHub.
@@ -180,11 +231,13 @@ python3 -m pytest tests/            # acceptance tests
 python3 bin/fetch.py --dry-run      # fetch + dedupe, writes nothing
 python3 bin/seen.py status          # what the dedupe index has seen
 python3 bin/validate.py <variant.yaml>
+python3 bin/check_template_clean.py # template-repo guard (fails in your instance, by design)
 ```
 
-The full design and rationale live in `PRD.md`; the operating rules and red
-lines in `CLAUDE.md`.
+The full design and rationale live in `PRD.md` (§19 covers career tracks and
+what changed to make this shareable); the operating rules and red lines in
+`CLAUDE.md`.
 
 ---
 
-Created by **Annabel Nguyen**.
+Created by **Annabel Nguyen**. Released under the MIT License — see `LICENSE`.

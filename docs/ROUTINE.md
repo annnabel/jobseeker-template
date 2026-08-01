@@ -10,8 +10,10 @@ Create at **claude.ai/code/routines → New Routine**. Attach your private
 
 > **Already have this routine from before v3.5?** The prompt below changed
 > (the sweep now lands the shortlist on `main` — no branch, no PR — and the
-> morning pick moved to `/choose`). Editing this file does **not** update the
-> routine at claude.ai — open the routine and re-paste the prompt.
+> morning pick moved to `/choose`). **From before v3.6?** It changed again:
+> triage scores against your career tracks in `profile/goals.yaml`, and the
+> report is grouped by track. Editing this file does **not** update the routine
+> at claude.ai — open the routine and re-paste the prompt.
 
 ## Routine prompt (paste verbatim)
 
@@ -27,8 +29,12 @@ Order matters (see PRD §6, §18 and the /sweep skill — the skill is
 authoritative). Work on main the whole run; never create a branch:
 1. bin/seen.py audit (pre-flight; repair any MISS first)
 2. bin/fetch.py --source all. Non-zero exit = every adapter failed:
-   abort and report, do not report a "quiet night".
+   abort and report, do not report a "quiet night". If it prints a
+   "role_filter dropped N" line, carry N into the report.
 3. Triage each queue/raw posting; keep >= config.scoring.threshold.
+   Triage scores against the tracks in profile/goals.yaml (where I
+   want to go), not against my last job title. Record each role's
+   track in its meta.yaml.
 4. Write queue/shortlist/<slug>/ (jd.md + meta.yaml, copying the
    posting's fingerprint into meta.yaml verbatim) for each survivor.
    Zero survivors: skip step 5, still mark the kills (step 6).
@@ -42,10 +48,11 @@ authoritative). Work on main the whole run; never create a branch:
    Delete the processed queue/raw files. Commit state/seen/ as its own
    commit ("sweep: seen-state <date>") and push main.
 7. End the run with the report (this is what I read in the morning —
-   there is no PR): one block per shortlisted role — company, title,
-   location, triage score + reason, red flags, top-5 JD keywords,
-   referral match, and a [GAP] where a company note is missing; a line
-   naming any adapters that failed; the raised threshold if the cap bit.
+   there is no PR): grouped by goals.yaml track, one block per
+   shortlisted role — company, title, location, triage score + reason,
+   red flags, top-5 JD keywords, referral match, and a [GAP] where a
+   company note is missing; a line naming any adapters that failed; the
+   role_filter drop count if any; the raised threshold if the cap bit.
    End with: "Run /choose in a fresh session to pick keeps, then
    /tailor." Nothing else. No drafts. No interview prep.
 

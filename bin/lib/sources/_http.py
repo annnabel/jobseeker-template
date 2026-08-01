@@ -25,7 +25,7 @@ import time
 
 import httpx
 
-USER_AGENT = "annabels-jobseeker/1.0 (personal job search)"
+USER_AGENT = "jobseeker/1.0 (personal job search)"
 TIMEOUT = 20.0
 MAX_RETRIES = 3
 

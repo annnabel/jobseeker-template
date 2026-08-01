@@ -367,3 +367,95 @@ def test_tracker_auto_ghost(tmp_path):
     out = tmp_path / "tracker.csv"
     run("tracker.py", "--root", str(tmp_path), "-o", str(out), "--today", "2026-03-01")
     assert "ghosted" in out.read_text()
+
+
+# ── goals: role filter + skills alias (PRD §19) ────────────────────────────
+
+
+def test_role_filter_matching():
+    sys.path.insert(0, os.path.join(BIN, "lib"))
+    from roles import title_matches
+
+    patterns = ["data analyst", "business analyst", "analytics", r"\binsights\b"]
+    for title in (
+        "Data Analyst",
+        "Senior Business Analyst",
+        "Analytics Engineer",
+        "Insights Manager",
+        "",  # unknown title goes to triage, not the bin
+    ):
+        assert title_matches(title, patterns), title
+    for title in ("Registered Nurse", "Warehouse Associate", "Account Executive"):
+        assert not title_matches(title, patterns), title
+    # No filter configured -> keep everything (the default: off).
+    assert title_matches("Registered Nurse", [])
+
+
+def test_load_goals_missing_file(tmp_path):
+    sys.path.insert(0, os.path.join(BIN, "lib"))
+    from roles import load_goals, role_filter
+
+    # An absent goals.yaml is a valid state (it arrives during /setup).
+    assert load_goals(str(tmp_path)) == {}
+    assert role_filter(load_goals(str(tmp_path))) == []
+
+
+def test_skills_key_is_a_synonym_for_technologies(tmp_path):
+    # A nurse's variant lists clinical competencies, not technologies. Both key
+    # names must validate and render identically.
+    import yaml
+
+    src = yaml.safe_load(open(os.path.join(FIX, "variant_good.yaml"), encoding="utf-8"))
+    assert src.get("technologies"), "fixture should exercise the legacy key"
+    src["skills"] = src.pop("technologies")
+    variant = tmp_path / "variant_skills_key.yaml"
+    variant.write_text(yaml.safe_dump(src, sort_keys=False), encoding="utf-8")
+
+    r = run(
+        "validate.py", str(variant),
+        "--bank", os.path.join(FIX, "evidence-bank.md"),
+        "--resume", os.path.join(FIX, "resume.yaml"),
+        "--config", NO_CONFIG,
+    )
+    assert r.returncode == 0, r.stderr
+
+    out = tmp_path / "resume.md"
+    r = run("render.py", str(variant), "-o", str(out))
+    assert r.returncode == 0, r.stderr
+    assert "## Skills" in out.read_text(encoding="utf-8")
+
+
+def test_unbacked_skill_still_fails(tmp_path):
+    # The provenance gate must not weaken under the new key name.
+    import yaml
+
+    src = yaml.safe_load(open(os.path.join(FIX, "variant_good.yaml"), encoding="utf-8"))
+    src.pop("technologies", None)
+    src["skills"] = ["Underwater Basket Weaving"]
+    variant = tmp_path / "variant_bad_skill.yaml"
+    variant.write_text(yaml.safe_dump(src, sort_keys=False), encoding="utf-8")
+
+    r = run(
+        "validate.py", str(variant),
+        "--bank", os.path.join(FIX, "evidence-bank.md"),
+        "--resume", os.path.join(FIX, "resume.yaml"),
+        "--config", NO_CONFIG,
+    )
+    assert r.returncode == 1, r.stderr
+    assert "Underwater Basket Weaving" in r.stderr
+
+
+# ── template hygiene (PRD §19.2) ───────────────────────────────────────────
+
+
+def test_template_carries_no_personal_data():
+    r = run("check_template_clean.py", "--root", ROOT)
+    assert r.returncode == 0, r.stderr
+
+
+def test_template_guard_catches_personal_data(tmp_path):
+    (tmp_path / "profile").mkdir()
+    (tmp_path / "profile" / "evidence-bank.md").write_text("### ev:0001\n", encoding="utf-8")
+    r = run("check_template_clean.py", "--root", str(tmp_path))
+    assert r.returncode == 1, r.stderr
+    assert "evidence-bank.md" in r.stderr

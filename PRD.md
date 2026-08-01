@@ -1,4 +1,4 @@
-# Annabel's Jobseeker — Product Requirements Document (v3)
+# Jobseeker — Product Requirements Document (v3)
 
 A personal job-search pipeline. It sources roles from public ATS APIs, triages
 them cheaply, tailors resumes and cover letters with provenance-checked claims,
@@ -611,3 +611,96 @@ the next sweep.
 pushes to `main` → `/choose` (fresh session, cheap) is where you pick keeps →
 `/tailor` (fresh session) develops the keeps only → you submit by hand →
 `/log` → done, no merge.
+
+## 19. Amendments (v3.6 — 2026-08-01, career goals + shareability)
+
+The trigger: this repo gets handed to friends, and a friend is not a clone of
+its author. Two defects surfaced, one cosmetic and one structural.
+
+### 19.1 The structural defect — the system modelled history, never intent
+
+`profile/` held the evidence bank (where you have been), `resume.yaml` (where
+you have been, canonically), `voice.md` (how you write), `config.yaml`
+(constraints), and `targets.yaml` (which companies). Nothing anywhere said
+**what job you want**.
+
+So triage's only positive fit signal was `## Angles` — positioning stances
+derived from past work. Fit meant *resemblance to your last job*. For someone
+who wants more of the same, that is a decent proxy and the defect is invisible.
+For everyone else it inverts the product:
+
+- A **career changer** gets every role they want scored below threshold and
+  killed, and gets shortlisted for the career they are trying to leave.
+- A **graduate** is scored against three internships and a thesis, with no way
+  to say which of five directions they are actually chasing.
+- Someone **open to two directions** has no way to express both, so the weaker
+  one silently never appears.
+- Anyone whose target companies post across many functions burns a triage call
+  on every warehouse and sales role at those companies, scored on the wrong
+  axis.
+
+**The fix: `profile/goals.yaml`** (`templates/goals.example.yaml`), a first-
+class profile artifact holding one to three ordered **tracks**. Each track:
+`id`, `label`, `titles`, `seniority`, `why`, `pivot`, `supporting_angles`,
+`must_have`, `avoid` — and, when `pivot: true`, the two fields that make a
+career change work honestly: `transferable` (which evidence carries across, in
+the candidate's own words) and `known_gaps` (what they plainly lack).
+
+Wiring:
+
+- **`triage`** scores against the tracks *first*, then asks whether the
+  evidence supports the role. A posting serving no track is off-target however
+  well the history fits it. On a pivot track, missing domain title/years is
+  friction rather than a kill, `transferable` counts as real support, and
+  `known_gaps` are pre-declared rather than discovered. The verdict gains a
+  `track` field, which flows into `meta.yaml` and through to `/choose`.
+- **`/setup`** interviews for goals *before* the evidence bank — the goal
+  decides which evidence is worth digging for, which matters most on a pivot,
+  where the relevant material is buried under an unrelated job title.
+- **`/sweep`** derives its triage *ordering* from the tracks' `titles` instead
+  of a hardcoded role vocabulary, and groups the report by track.
+- **`/tailor`** inverts its default ordering on a pivot track: lead with the
+  transferable evidence, keep the rest of the history present and honest but
+  shorter. Never hide a job, never re-label one, never claim the domain
+  experience that isn't there.
+- **`/choose`** groups the shortlist by track; **`/next`** treats a missing
+  `goals.yaml` as the top action and reports tracks that never yield.
+
+**Optional `role_filter`** (in `goals.yaml`, off by default) filters postings by
+title at fetch time, the same class of bookkeeping as `location_filter`. It is
+opt-in because it is the one narrowing that can drop a role triage would have
+kept; `fetch.py` prints the drop count and the sweep reports it, every run.
+`--ignore-role-filter` forces full coverage.
+
+**What does not change.** Every red line holds. Goals inform judgment; they
+never license invention. A pivot is made credible by real adjacent evidence
+plus a plainly stated `[SHORTFALL]`, never by blur — and `validate.py` still
+fails a title that diverges from `resume.yaml`. Nothing may write
+`profile/goals.yaml` during a sweep (red line 7); a track that keeps coming up
+empty is *reported* to the human, never quietly retuned. Their career goals are
+theirs.
+
+### 19.2 The cosmetic defect — the template was one person's instance
+
+The product was named for its author in `README.md`, `PRD.md`, `CLAUDE.md`,
+`pyproject.toml`, and the outbound HTTP User-Agent; a third person's name was
+baked into a `meta.yaml` example; `/sweep` hardcoded one candidate's target
+role vocabulary; `triage` anchored its level examples to it; and `tailor`
+assumed software engineering throughout — Azure DevOps as the model bullet,
+"Programming Languages / Cloud Platforms / CI/CD" as the skills taxonomy,
+`technologies:` as the name of the skills field. A nurse, teacher, or
+electrician using this got a system that was visibly not built for them, and a
+sweep that de-prioritised exactly their own roles.
+
+Fixed: the product is **Jobseeker**, attribution stays in `README.md` and
+`LICENSE`; prompts carry examples from several fields; the skills field accepts
+`skills:` as a synonym for `technologies:` (both keys still validate and
+render); `/setup` scales the evidence-bank target to career stage and states
+that `confidence: qualitative` is first-class, because plenty of real work is
+judged by outcome rather than metric.
+
+Also added for shareability: `LICENSE` (MIT), a CI workflow running the
+acceptance tests, and `bin/check_template_clean.py` — a guard that fails if
+personal data is ever committed to the shared template. The guard runs in CI
+only on the template repo itself, so a friend's private instance, whose
+`profile/` is *supposed* to be full, never sees it fail.

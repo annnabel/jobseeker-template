@@ -1,4 +1,4 @@
-"""Shared data models for Annabel's Jobseeker.
+"""Shared data models for Jobseeker.
 
 Deliberately small. These types are the contract between the fetch layer,
 the seen-state index, and the tracker. Nothing here talks to a model, and

@@ -28,11 +28,17 @@ title, location, closing date if stated, source ("manual — pasted by the user"
 
 ## Step 3 — fit read
 
-Invoke the `triage` subagent on the JD (score, reason, red_flags), then show
-the human the score plus any relevant `## Shortfalls` from the evidence bank.
-Say what you'd tailor against and what's missing. The threshold in
-`config.yaml` does **not** auto-kill here — the human found this role and the
-human decides.
+Invoke the `triage` subagent on the JD (score, reason, red_flags, track), then
+show the human the score, the track it serves, plus any relevant
+`## Shortfalls` from the evidence bank. Say what you'd tailor against and
+what's missing. The threshold in `config.yaml` does **not** auto-kill here —
+the human found this role and the human decides.
+
+If triage returns `track: none`, say so plainly and neutrally — *"this doesn't
+match any track in your goals.yaml; that's fine if you're widening the net, and
+worth an edit to goals.yaml if you're changing direction"* — then carry on with
+the same question in step 4. A role off their stated goals is their call, not a
+reason to discourage them.
 
 ## Step 4 — ask: pursue, hold, or pass?
 
