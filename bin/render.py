@@ -44,6 +44,21 @@ def _contact_values(contact: dict):
             yield str(value)
 
 
+def _skills(variant: dict) -> list[str]:
+    """The variant's skills list, under either accepted key (PRD §19).
+
+    `technologies:` is the original key; `skills:` is the field-neutral
+    synonym. Both may be present — render the union, in that order, without
+    duplicates.
+    """
+    out: list[str] = []
+    for key in ("skills", "technologies"):
+        for item in variant.get(key, []) or []:
+            if str(item).strip() and str(item) not in out:
+                out.append(str(item))
+    return out
+
+
 def _esc(text: str) -> str:
     """Escape Typst special characters in plain content."""
     out = str(text)
@@ -87,10 +102,10 @@ def build_typst(variant: dict) -> str:
                 lines.append(f"- {_esc(bullet.get('text', ''))}")
         lines.append("")
 
-    techs = variant.get("technologies", []) or []
-    if techs:
+    skills = _skills(variant)
+    if skills:
         lines.append("== Skills")
-        lines.append(_esc(", ".join(techs)))
+        lines.append(_esc(", ".join(skills)))
 
     return "\n".join(lines) + "\n"
 
@@ -131,9 +146,9 @@ def build_markdown(variant: dict) -> str:
             lines.append("")
         lines.append("")
 
-    techs = variant.get("technologies", []) or []
-    if techs:
-        lines += ["## Skills", "", ", ".join(str(t) for t in techs)]
+    skills = _skills(variant)
+    if skills:
+        lines += ["## Skills", "", ", ".join(skills)]
 
     out = "\n".join(lines)
     while "\n\n\n" in out:

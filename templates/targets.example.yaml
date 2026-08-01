@@ -27,6 +27,16 @@ companies:
   - slug: third-co
     ats: ashby
 
+# Add companies that hire for EVERY track in profile/goals.yaml, not just your
+# first one — a track with no employers behind it produces a permanently empty
+# section of every shortlist. And if your field mostly doesn't use these ten
+# ATSes (public sector, healthcare systems, education, small local employers
+# often don't), that's fine: your system is `/add`-driven and the sweep is a
+# bonus on top.
+#
+# To scope by ROLE rather than company, see `role_filter` in
+# templates/goals.example.yaml. It is off by default.
+
 # location_filter (optional) — case-insensitive regexes applied at FETCH time,
 # before triage ever sees a posting. A posting is kept if any pattern matches
 # its location string; a posting with no location string is always kept (it

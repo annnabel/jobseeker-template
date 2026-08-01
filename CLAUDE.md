@@ -1,4 +1,4 @@
-# Annabel's Jobseeker — operating rules
+# Jobseeker — operating rules
 
 This repo automates a personal job search: fetch postings from public ATS APIs,
 triage cheaply into a shortlist pushed to `main`, let the human pick the keeps
@@ -29,8 +29,11 @@ These hold everywhere, but especially there:
    `profile/companies/<slug>.md`. Not from memory. Not from the model's priors.
    Research does not bypass this: findings go into the company note first, each
    with a source URL, and are cited from there (PRD §16).
-7. **Never write to `profile/resume.yaml` or `profile/config.yaml` during a
-   sweep.** Variants only.
+7. **Never write to `profile/resume.yaml`, `profile/config.yaml`, or
+   `profile/goals.yaml` during a sweep.** Variants only. Goals are read at
+   every stage and edited only by the human, in an interactive session: a
+   track that keeps coming up empty gets *reported*, never quietly retuned.
+   Their career goals are theirs.
 8. **Never put seen-state in a PR.** It goes to `main` (§6).
 9. **Never exceed `queue_cap`.** More survivors → raise the threshold for this
    run and say so.
@@ -56,6 +59,27 @@ These hold everywhere, but especially there:
   never invent.
 - **Bookkeeping is not a decision.** Gates review judgment; never gate a fact.
   Seen-state is a fact and goes straight to `main`.
+
+## Goals vs. evidence — do not conflate (PRD §19)
+
+- **`profile/goals.yaml`** — where the user wants to **go**. Ordered tracks,
+  each with the titles that mean it, the stage it sits at, and whether it is a
+  `pivot`. This is what a role is scored *against*.
+- **`profile/evidence-bank.md`** — where they have **been**. This is what a
+  claim is *supported by*.
+
+A role that matches the history but no track is off-target: score it low and
+say why. A role that matches a `pivot` track is on-target even though the
+history doesn't look like it — credit the track's `transferable` evidence,
+treat the missing domain title as friction rather than a kill, and state its
+`known_gaps` as `[SHORTFALL]`s. Neither direction licenses invention: a pivot
+is made credible by real adjacent evidence and an honest gap, never by blur.
+
+**This template is shared with people whose careers look nothing like its
+author's.** Never hardcode a role vocabulary, an industry, a seniority, or a
+skills taxonomy into a prompt or a script — read it from the user's own
+`goals.yaml`, `config.yaml`, and evidence bank. And never assume work produces
+numbers: `confidence: qualitative` is a first-class value, not a gap to fill.
 
 ## Two gap types — do not conflate (PRD §8.5)
 

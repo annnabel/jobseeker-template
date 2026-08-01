@@ -46,10 +46,14 @@ it, and the groups are not interchangeable:
 Present the two groups **separately and labelled**, so a below-threshold role
 is never mistaken for a survivor.
 
-First, **Shortlist (met the bar)** — the `status: shortlisted` entries. One
-block per role, compact enough to skim on a phone: company, title, location,
-triage score + reason, red flags, keywords, referral match, and
-`[GAP] No company note` where the note is missing.
+First, **Shortlist (met the bar)** — the `status: shortlisted` entries,
+sub-grouped by their `track:` under each track's `label` from
+`profile/goals.yaml`, in track order. One block per role, compact enough to
+skim on a phone: company, title, location, triage score + reason, red flags,
+keywords, referral match, and `[GAP] No company note` where the note is
+missing. Entries with `track: none` (or written before goals existed) go last,
+under "No track". If `profile/goals.yaml` is absent, skip the grouping
+entirely and present one flat list.
 
 Then, only if any exist, **Closest misses (below the bar)** — the
 `status: near_miss` entries, in their own clearly-headed section. Same fields,
@@ -115,4 +119,8 @@ queue is clear and point at `/next`.
 - Never keep or discard a role the human didn't name — no picks without the
   human, no defaults, no "I went ahead and".
 - Never write seen-state — discards are already seen.
-- Never modify `profile/resume.yaml` or `profile/config.yaml`.
+- Never modify `profile/resume.yaml`, `profile/config.yaml`, or
+  `profile/goals.yaml`. If a whole track keeps arriving empty or wrong, say so
+  in one line at hand-off ("nothing on the *career-changer* track for three
+  sweeps — its `titles` may be too narrow") and leave the edit to them. Their
+  career goals are not yours to adjust.

@@ -18,14 +18,16 @@ Work on `main` the whole run; never create a branch.
 **Full coverage is the default, every run.** The unattended sweep fetches
 *every* board in `profile/targets.yaml` (`--source all`) and triages *every*
 posting that survives fetch — no board subsetting, no pre-triage filtering by
-company, role, seniority, or keyword. Coverage is only ever reduced by the
-mechanics already built into the pipeline: the fetch-layer location filter,
-the 30-day freshness cut, seen-state dedupe, and the triage threshold. Any
-*other* narrowing (an early filter to save tokens, a hand-picked subset of
-boards) is an **interactive-only, explicitly-requested exception** — never the
-unattended default. If a run was narrowed on request, say so in the closing
-report and leave the skipped postings **un-seen**, so a later full sweep still
-reaches them.
+company, role, seniority, or keyword of your own devising. Coverage is only
+ever reduced by the mechanics already built into the pipeline and configured by
+the human: the fetch-layer location filter, the fetch-layer `role_filter` from
+`profile/goals.yaml` (opt-in, off unless they set it), the 30-day freshness
+cut, seen-state dedupe, and the triage threshold. Any *other* narrowing (an
+early filter to save tokens, a hand-picked subset of boards) is an
+**interactive-only, explicitly-requested exception** — never the unattended
+default. If a run was narrowed on request, say so in the closing report and
+leave the skipped postings **un-seen**, so a later full sweep still reaches
+them.
 
 ## Order of operations
 
@@ -37,14 +39,17 @@ reaches them.
 
 1. **Fetch** — `python3 bin/fetch.py --source all` — always all sources, every
    board, never a subset. This reads
-   `profile/targets.yaml`, skips postings last updated more than 30 days ago
+   `profile/targets.yaml`, applies the optional `role_filter` from
+   `profile/goals.yaml`, skips postings last updated more than 30 days ago
    (postings with no parseable date pass through to triage), dedupes against
    `state/seen/*.jsonl`, and writes new postings to `queue/raw/`. One dead adapter logs a warning and the run
    continues — note which boards failed for the closing report, so the human
    knows coverage was partial. If fetch exits **non-zero** (every adapter
    failed), the environment is broken: **abort the sweep** and say so plainly.
    Do not report a quiet night. It also warns loudly if the seen
-   index is empty.
+   index is empty. If it prints a `role_filter dropped N posting(s)` line,
+   carry that number into the closing report — an opt-in narrowing the human
+   configured is still a narrowing they should see the size of.
 
 2. **Triage** — for **every** posting in `queue/raw/` (none skipped ahead of
    triage), invoke the `triage` subagent
@@ -60,14 +65,19 @@ reaches them.
    **Focus, without narrowing.** Full coverage is a red line: triage *every*
    fetched posting — never skip one by title, keyword, or seniority to "save
    effort", and never subset boards (CLAUDE.md, PRD §4). A run focuses on
-   shortlist-likely roles by *ordering*, not dropping: triage the postings
-   whose title/department signal a profile-fit role first (analyst, business /
-   finance / commercial, consulting, strategy, operations, graduate / associate
-   — the candidate's angles), then the rest. Under a rate-limit or time pinch
-   the likely fits get scored first; with no pinch the outcome is identical.
-   The real focusing is done by a **sharp triage** (see `triage.md`) plus the
-   threshold and the near-miss tier — not by a pre-triage filter, which would
-   silently lose the occasional good role a keyword rule misjudges.
+   shortlist-likely roles by *ordering*, not dropping: read the `titles` of
+   each track in `profile/goals.yaml` (in track order — the first track is the
+   human's first choice) and triage the postings whose title or department
+   signals one of those tracks first, then everything else. **Derive that
+   ordering from their goals file every run; never hardcode a role vocabulary
+   here** — the person running this is not the person who wrote it, and a
+   guessed list de-prioritises exactly the roles someone in another field
+   wants. No `goals.yaml`, no ordering: triage in whatever order the postings
+   come. Under a rate-limit or time pinch the likely fits get scored first;
+   with no pinch the outcome is identical. The real focusing is done by a
+   **sharp triage** (see `triage.md`) plus the threshold and the near-miss
+   tier — not by a pre-triage filter, which would silently lose the occasional
+   good role a keyword rule misjudges.
 
    The near-miss tier exists because a run that kills 100% of its postings
    leaves the human nothing to review and no signal *why*. Surfacing the
@@ -106,14 +116,17 @@ reaches them.
                         # seen-state identity; audit depends on it being exact
      status: shortlisted   # survivors; near-miss entries use `near_miss`
      swept: <YYYY-MM-DD>
+     track:             # the goals.yaml track id this role serves, from
+                        # triage's verdict; "none" if it serves no track
      triage:
        score:
        reason:
        red_flags: []
        miss_reason:     # near-miss entries ONLY: one line — what kept it under
-                        # the bar (e.g. "wants 5+ yrs; Minh has ~3"). Omit for
-                        # survivors. (Named to avoid the reserved [SHORTFALL]
-                        # marker, which is a permanent candidate gap — CLAUDE.md.)
+                        # the bar (e.g. "wants 5+ yrs of it; the bank shows
+                        # about 3"). Omit for survivors. (Named to avoid the
+                        # reserved [SHORTFALL] marker, which is a permanent
+                        # candidate gap — CLAUDE.md.)
      keywords: []       # top-5 ATS keywords from the JD, for the human's skim
      referral:          # matching name from connections.csv, else "none"
      company_note:      # present | missing (profile/companies/<slug>.md)
@@ -177,9 +190,13 @@ reaches them.
 
 7. **Report** — end the run with a summary in the session (this is what the
    human reads in the morning; there is no PR):
-   - **Shortlist** — one block per shortlisted role: company, title, location,
-     triage score + reason, red flags, top-5 JD keywords, referral match, and
-     `[GAP] No company note for <company>` where the note is missing.
+   - **Shortlist** — grouped by goals.yaml track, in track order, each group
+     under its track `label`. One block per shortlisted role: company, title,
+     location, triage score + reason, red flags, top-5 JD keywords, referral
+     match, and `[GAP] No company note for <company>` where the note is
+     missing. A track with nothing this run gets one line saying so — a
+     consistently empty track is the human's signal that its `titles` are off
+     or its companies don't hire for it.
    - **Closest misses** — if any near-miss entries were written, a short
      section listing each: company, title, score, and the one-line `miss_reason`
      (what kept it under the bar). Say plainly these are *below* the threshold
@@ -188,7 +205,9 @@ reaches them.
    - One line of headline counts: "swept N, shortlisted X, near-misses Y
      (threshold T)".
    If any adapters failed in step 1, one line naming them ("coverage was
-   partial: …"). If the cap raised the threshold, say so and name what it cost.
+   partial: …"). If fetch reported a `role_filter` drop count, one line naming
+   it ("role_filter dropped N before triage"). If the cap raised the threshold,
+   say so and name what it cost.
    Close with one line telling the human what to do next: *"Run /choose in a
    fresh session to pick keeps, then /tailor."* Nothing else. No drafts. No
    interview prep.
@@ -198,7 +217,8 @@ reaches them.
 - Never pick keeps or discard shortlist entries — that is `/choose`, Gate 1,
   and it is the human's (PRD §18).
 - Never submit an application or navigate to a submit button.
-- Never modify `profile/resume.yaml` or `profile/config.yaml`.
+- Never modify `profile/resume.yaml`, `profile/config.yaml`, or
+  `profile/goals.yaml`. A sweep reads the goals; changing them is the human's.
 - Never create a branch or open a PR — the sweep lands on `main` (PRD §18).
 - Never fetch outside the ATS allowlist, including for company research (§4.3).
 - Never exceed `queue_cap` — raise the threshold for this run and say so.

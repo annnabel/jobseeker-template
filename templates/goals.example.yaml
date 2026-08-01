@@ -1,0 +1,90 @@
+# goals.yaml — where you want to GO. PRD §19.
+# Copy to profile/goals.yaml. `/setup` fills this in first, before the
+# evidence bank, because your goal decides which evidence is worth digging for.
+#
+# Why this file exists: the evidence bank says where you have BEEN. Without
+# this file, triage can only score a role by how much it resembles your last
+# job, so anyone changing direction gets shortlisted for the career they are
+# trying to leave. This file is the other half of the fit judgment.
+#
+# One track is normal. Two or three is normal if you are genuinely open to
+# different directions ("data analyst" or "operations"). More than three and
+# the shortlist stops meaning anything — pick.
+#
+# Order is priority: the first track is the one you most want.
+
+tracks:
+  - id: primary                     # short, lowercase, unique — used in reports
+    label: Data analyst             # how you'd describe the job to a friend
+    # Title words that mean "this is that job". Case-insensitive substrings,
+    # matched against the posting title. Include the variants employers
+    # actually use, not just the one you'd write on a business card.
+    titles:
+      - data analyst
+      - business analyst
+      - analytics
+      - insights
+    # Where in a career this sits FOR YOU. Triage uses it to judge level:
+    # a role pitched at your stage is a plus, never a penalty.
+    # e.g. student | graduate | early | mid | senior | lead | exec | returner
+    seniority: early
+    # One honest line. This is for you and for the human reading the shortlist,
+    # not for a cover letter.
+    why: Closest to the work I already like, and the market for it is deep.
+    # false — you have done this kind of work before.
+    # true  — you are moving INTO this from somewhere else (see `transferable`).
+    pivot: false
+    # Which `## Angles` from profile/evidence-bank.md support this track.
+    # Leave empty until the bank exists; /setup fills it in afterwards.
+    supporting_angles:
+      - the-angle-slug
+    # Per-track non-negotiables and turn-offs. These are narrower than the
+    # global `constraints` in config.yaml, which apply to every track.
+    must_have: []                   # e.g. ["SQL in the day job"]
+    avoid: []                       # e.g. ["pure reporting, no analysis"]
+
+  # A PIVOT track. This is the case the system exists to handle: the job you
+  # want is not the job you have had.
+  # - id: pivot
+  #   label: UX researcher
+  #   titles: [ux research, user research, design research]
+  #   seniority: early
+  #   why: Same work I did informally for three years, with the title attached.
+  #   pivot: true
+  #   supporting_angles: [research-and-synthesis]
+  #   # REQUIRED when pivot is true. Which evidence carries across, in your own
+  #   # words. Triage credits this instead of penalising the missing title;
+  #   # the tailor leads with it. It cannot invent it, so be concrete and be
+  #   # honest: name the evidence, not the aspiration.
+  #   transferable: >
+  #     ev:0012 and ev:0019 are user interviews and synthesis, run under a
+  #     different job title. ev:0031 is the study that changed the roadmap.
+  #   # What you plainly do not have yet. This is a [SHORTFALL], stated once
+  #   # here so every draft states it the same way instead of writing around it.
+  #   known_gaps:
+  #     - No formal HCI qualification.
+  #     - Never owned a research repository or a participant panel.
+  #   must_have: []
+  #   avoid: []
+
+# role_filter (optional, OFF by default) — case-insensitive regexes applied at
+# FETCH time, before triage ever sees a posting. Same kind of bookkeeping as
+# targets.yaml's `location_filter`: it scopes which postings enter the queue,
+# it never ranks them. A posting is kept if any pattern matches its title;
+# a posting with no title is always kept.
+#
+# The trade, stated plainly: this is the only narrowing in the pipeline that
+# can silently drop a good role a keyword rule misjudges — a "Growth Associate"
+# posting that is really the analyst job you want. Triage would have caught it;
+# a regex will not. Leave it out unless you are targeting big boards where the
+# volume is real (Stripe lists hundreds of roles across every function, and the
+# most expensive way to reject a warehouse role is to score it with a model
+# first). The sweep reports how many postings it dropped, every run.
+#
+# A good starting set is the union of your tracks' `titles` above.
+#
+# role_filter:
+#   - data analyst
+#   - business analyst
+#   - analytics
+#   - insights

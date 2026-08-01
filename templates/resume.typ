@@ -19,9 +19,13 @@
 - One line positioning statement tied to the target angle.
 
 == Experience
-*Staff Engineer*, Example Co #h(1fr) 2021-03 → 2023-08
+*Job Title*, Example Co #h(1fr) 2021-03 → 2023-08
 - Accomplishment with a metric the evidence bank supports (ev:0000).
-- A second bullet, one line, action verb first.
+- A second bullet, one line, action verb first. No metric needed when the
+  evidence entry is qualitative (ev:0001).
 
 == Skills
-technology, another-technology, a-third
+// Whatever your field calls its capabilities: tools, clinical procedures,
+// languages, curricula, licences, methods. Every one must be tagged by an
+// evidence entry.
+a-skill, another-skill, a-third

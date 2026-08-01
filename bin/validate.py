@@ -198,6 +198,22 @@ def flatten_bullets(variant: dict) -> list[tuple[str, dict]]:
     return out
 
 
+def claimed_skills(variant: dict) -> list[str]:
+    """The variant's skills list, under either accepted key.
+
+    `technologies:` is the original key and still works. `skills:` is the
+    field-neutral synonym — a nurse's variant lists clinical competencies, a
+    teacher's lists curricula, and neither is a technology (PRD §19). Both may
+    be present; the union is what gets gated.
+    """
+    out: list[str] = []
+    for key in ("skills", "technologies"):
+        for item in variant.get(key, []) or []:
+            if str(item).strip() and str(item) not in out:
+                out.append(str(item))
+    return out
+
+
 def canonical_employers(variant: dict) -> list[dict]:
     out: list[dict] = []
     for section in variant.get("sections", []) or []:
@@ -260,10 +276,10 @@ def validate_resume(
                 f"(use directional phrasing): {snippet!r}"
             )
 
-    # A technology in the skills list must be tagged by some evidence entry.
-    for tech in variant.get("technologies", []) or []:
-        if tech.strip().lower() not in tags:
-            errors.append(f"technology {tech!r} is claimed but no evidence entry tags it")
+    # A skill in the skills list must be tagged by some evidence entry.
+    for skill in claimed_skills(variant):
+        if skill.strip().lower() not in tags:
+            errors.append(f"skill {skill!r} is claimed but no evidence entry tags it")
 
     # Canonical facts must match resume.yaml if present.
     if resume_path and os.path.exists(resume_path):
@@ -360,15 +376,15 @@ def validate_cover(
                     f"cover mentions employer {emp!r} that is not in the validated variant"
                 )
 
-        # Technologies mentioned in the cover must be in the variant.
-        for tech in bank_tags(bank):
-            if len(tech) < 3:
+        # Skills mentioned in the cover must be in the variant.
+        for skill in bank_tags(bank):
+            if len(skill) < 3:
                 continue
-            if re.search(rf"\b{re.escape(tech)}\b", cover, re.IGNORECASE) and not re.search(
-                rf"\b{re.escape(tech)}\b", vtext, re.IGNORECASE
+            if re.search(rf"\b{re.escape(skill)}\b", cover, re.IGNORECASE) and not re.search(
+                rf"\b{re.escape(skill)}\b", vtext, re.IGNORECASE
             ):
                 errors.append(
-                    f"cover mentions technology {tech!r} that is not in the validated variant"
+                    f"cover mentions skill {skill!r} that is not in the validated variant"
                 )
 
     return errors

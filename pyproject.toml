@@ -1,7 +1,7 @@
 [project]
-name = "annabels-jobseeker"
+name = "jobseeker"
 version = "1.0.0"
-description = "Annabel's Jobseeker — a personal job-search pipeline: fetch, triage, tailor, gate, track; the human applies by hand. Created by Annabel Nguyen."
+description = "Jobseeker — a personal job-search pipeline: fetch, triage, tailor, gate, track; the human applies by hand. Originally created by Annabel Nguyen."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

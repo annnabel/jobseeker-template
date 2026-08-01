@@ -4,9 +4,9 @@
     fetch.py [--source ats|all] [--dry-run]
 
 Reads profile/targets.yaml -> lib/sources/<ats>.py. Skips postings outside the
-location filter or last updated more than --max-age-days ago (default 30).
-Dedupes against the union of state/seen/*.jsonl. Writes one JSON file per
-posting under queue/raw/.
+location filter, outside profile/goals.yaml's optional role_filter, or last
+updated more than --max-age-days ago (default 30). Dedupes against the union of
+state/seen/*.jsonl. Writes one JSON file per posting under queue/raw/.
 Never calls a model. Never writes seen-state (that is seen.py, at terminal
 disposition only). One broken adapter logs a warning and the sweep continues.
 """
@@ -28,6 +28,7 @@ import yaml  # noqa: E402
 from dedupe import dedupe  # noqa: E402
 from freshness import is_fresh  # noqa: E402
 from locations import location_matches  # noqa: E402
+from roles import load_goals, role_filter as goals_role_filter, title_matches  # noqa: E402
 from schema import Posting  # noqa: E402
 from seen import load_seen  # noqa: E402
 from sources import get_adapter  # noqa: E402
@@ -53,13 +54,18 @@ def fetch_all(
     only_source: str | None,
     location_filter: list[str],
     max_age_days: int = MAX_AGE_DAYS,
-) -> tuple[list[Posting], int, int]:
-    """Return (postings, adapter_failures, attempted). Rate-limited per host by
-    sleeping between calls to the same source.
+    role_patterns: list[str] | None = None,
+) -> tuple[list[Posting], int, int, int]:
+    """Return (postings, adapter_failures, attempted, role_dropped).
+
+    Rate-limited per host by sleeping between calls to the same source.
+    `role_dropped` counts postings the optional role filter removed — the sweep
+    reports it so an opt-in narrowing is never silent (PRD §19).
     """
     postings: list[Posting] = []
     failures = 0
     attempted = 0
+    role_dropped = 0
     last_call: dict[str, float] = {}
     for target in targets:
         ats = target.get("ats")
@@ -78,13 +84,17 @@ def fetch_all(
             adapter = get_adapter(ats)
             found = adapter.fetch(slug, location_filter=location_filter)
             located = [p for p in found if location_matches(p.location, location_filter)]
-            kept = [p for p in located if is_fresh(p.updated_at, max_age_days)]
+            on_track = [p for p in located if title_matches(p.title, role_patterns)]
+            role_dropped += len(located) - len(on_track)
+            kept = [p for p in on_track if is_fresh(p.updated_at, max_age_days)]
             postings.extend(kept)
             notes = []
             if len(located) != len(found):
                 notes.append(f"{len(found) - len(located)} outside location filter")
-            if len(kept) != len(located):
-                notes.append(f"{len(located) - len(kept)} stale (>{max_age_days}d)")
+            if len(on_track) != len(located):
+                notes.append(f"{len(located) - len(on_track)} outside role filter")
+            if len(kept) != len(on_track):
+                notes.append(f"{len(on_track) - len(kept)} stale (>{max_age_days}d)")
             print(
                 f"  {ats}/{slug}: {len(kept)} postings"
                 + (f" ({', '.join(notes)})" if notes else ""),
@@ -95,7 +105,7 @@ def fetch_all(
             print(f"warning: adapter {ats}/{slug} failed: {exc}", file=sys.stderr)
         finally:
             last_call[ats] = time.monotonic()
-    return postings, failures, attempted
+    return postings, failures, attempted, role_dropped
 
 
 def write_raw(postings: list[Posting], root: str) -> int:
@@ -124,6 +134,11 @@ def main(argv: list[str] | None = None) -> int:
         default=MAX_AGE_DAYS,
         help=f"skip postings last updated more than this many days ago; 0 disables (default: {MAX_AGE_DAYS})",
     )
+    parser.add_argument(
+        "--ignore-role-filter",
+        action="store_true",
+        help="ignore profile/goals.yaml role_filter for this run (full coverage)",
+    )
     parser.add_argument("--root", default=".", help="repo root (default: cwd)")
     args = parser.parse_args(argv)
 
@@ -131,6 +146,8 @@ def main(argv: list[str] | None = None) -> int:
     if not targets:
         print("no targets configured", file=sys.stderr)
         return 0
+
+    role_patterns = [] if args.ignore_role_filter else goals_role_filter(load_goals(args.root))
 
     # Validate location_filter regexes up front. A bad pattern raises re.error
     # inside every per-target block (location_matches runs for all of them),
@@ -147,6 +164,16 @@ def main(argv: list[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return 2
+    for pattern in role_patterns:
+        try:
+            re.compile(pattern)
+        except re.error as exc:
+            print(
+                f"error: invalid role_filter regex {pattern!r} in "
+                f"profile/goals.yaml: {exc}",
+                file=sys.stderr,
+            )
+            return 2
 
     seen = load_seen(args.root)
     print(f"loaded {len(seen)} seen fingerprints", file=sys.stderr)
@@ -159,8 +186,12 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
 
-    postings, failures, attempted = fetch_all(
-        targets, args.source, location_filter, max_age_days=args.max_age_days
+    postings, failures, attempted, role_dropped = fetch_all(
+        targets,
+        args.source,
+        location_filter,
+        max_age_days=args.max_age_days,
+        role_patterns=role_patterns,
     )
     if attempted and failures == attempted:
         print(
@@ -177,6 +208,14 @@ def main(argv: list[str] | None = None) -> int:
         f"{failures} adapter failure(s)",
         file=sys.stderr,
     )
+    if role_dropped:
+        # Never silent: this is the one narrowing that can drop a role triage
+        # would have kept, so the count reaches the sweep's report (PRD §19).
+        print(
+            f"role_filter dropped {role_dropped} posting(s) before triage "
+            f"(profile/goals.yaml; --ignore-role-filter for full coverage)",
+            file=sys.stderr,
+        )
 
     if args.dry_run:
         print("dry-run: not writing queue/raw/", file=sys.stderr)

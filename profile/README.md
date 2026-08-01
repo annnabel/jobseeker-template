@@ -6,7 +6,8 @@ knows about you:
 
 | File | What it is | Created by |
 |---|---|---|
-| `evidence-bank.md` | Your "master resume" — every job, project, and accomplishment, each with an ID and an honesty rating | `/setup` |
+| `goals.yaml` | **Where you want to go** — one to three career tracks, and whether each is a change of direction. Written first, because it decides what everything else is measured against | `/setup` (from `templates/goals.example.yaml`) |
+| `evidence-bank.md` | Your "master resume" — every job, project, and accomplishment, each with an ID and an honesty rating. **Where you have been** | `/setup` |
 | `resume.yaml` | The canonical facts: every employer, title, and date, exactly once | `/setup` |
 | `voice.md` | A short description of how you write, so drafts sound like you | `/setup` |
 | `config.yaml` | Your preferences: salary floor, locations, dealbreakers, scoring threshold | `/setup` (from `templates/config.example.yaml`) |
@@ -16,7 +17,9 @@ knows about you:
 | `connections.csv` | (Optional) your LinkedIn connections export, for spotting referral paths | you |
 
 Never edit these by hand unless you want to — every skill knows how to
-maintain them for you.
+maintain them for you. The one worth revisiting yourself is `goals.yaml`: it's
+the only file nothing else will ever change, because what you're aiming at is
+your call. Open it whenever your plans shift.
 
 **Privacy note:** this folder will contain your real career history. That is
 why your copy of this repository must be **private** (see the README's setup

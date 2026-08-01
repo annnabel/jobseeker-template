@@ -74,11 +74,18 @@ style:
     - "\\bit'?s not [^.!?\\n]{1,60}?[,;.] ?it'?s\\b"
     - "\\bisn'?t [^.!?\\n]{1,60}?[,;.] ?it'?s\\b"
 
-# Constraints & preferences — triage reads these. A JD that demands a listed
-# dealbreaker as a hard requirement is a red flag, not a tailoring problem.
+# Constraints & preferences — triage reads these, and they apply to EVERY
+# track in profile/goals.yaml. Anything true of only one track (a licence, a
+# shift pattern, a must-have tool) belongs in that track's `must_have` /
+# `avoid` instead. A JD that demands a listed dealbreaker as a hard requirement
+# is a red flag, not a tailoring problem.
+#
+# These are placeholders, not recommendations — `remote: required` will kill a
+# great many perfectly good roles if you don't actually mean it. Set every line
+# to what is true for you.
 constraints:
   comp_floor: null            # e.g. 180000 (numbers only, your currency)
-  remote: required            # required | preferred | onsite_ok
+  remote: preferred           # required | preferred | onsite_ok
   locations: []               # e.g. ["Remote (US)", "New York, NY"]
   notice_period_weeks: null
   max_travel_pct: null
