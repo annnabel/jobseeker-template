@@ -155,25 +155,42 @@ def test_fetch_dry_run_no_targets(tmp_path):
     assert r.returncode == 0, r.stderr
 
 
+def test_fetch_survives_a_profile_yaml_that_is_not_a_mapping(tmp_path):
+    # A hand-edited profile file that parses to a list must degrade to "no
+    # targets, no role filter" with a warning, never an AttributeError.
+    profile = tmp_path / "profile"
+    profile.mkdir()
+    (profile / "targets.yaml").write_text("- example-co\n- another-co\n", encoding="utf-8")
+    (profile / "goals.yaml").write_text("- a track\n", encoding="utf-8")
+    r = run("fetch.py", "--dry-run", "--root", str(tmp_path))
+    assert r.returncode == 0, r.stderr
+    assert "not a mapping" in r.stderr
+    assert "Traceback" not in r.stderr
+
+
 def test_location_filter_matching():
     sys.path.insert(0, os.path.join(BIN, "lib"))
     from locations import location_matches
 
+    # Placeholder place names: the filter is regex-only and knows no geography,
+    # so the test exercises the shapes boards actually print, not a real region.
     patterns = [
-        "sydney", "australia", r"\bau\b", r"\baus\b", r"\bnsw\b",
-        "melbourne", "brisbane", "perth", "adelaide", "canberra",
+        "riverton", "eastland", r"\bel\b", r"\bels\b", r"\bnorthshire\b",
+        "lakeside", "bayview", "hillcrest", "pinegrove", "westport",
     ]
     for loc in (
-        "Sydney, New South Wales, Australia",
-        "AU - Sydney",
-        "AU: Sydney (45 Clarence St)",
-        "Melbourne, au",
-        "Melbourne",  # some boards report a bare city, no country token
-        "Remote - AUS",
+        "Riverton, Northshire, Eastland",
+        "EL - Riverton",
+        "EL: Riverton (45 Market St)",
+        "Lakeside, el",
+        "Lakeside",  # some boards report a bare city, no country token
+        "Remote - ELS",
         "",  # unknown location goes to triage, not the bin
     ):
         assert location_matches(loc, patterns), loc
-    for loc in ("Austin, Texas", "London, UK", "US Remote", "Auckland, NZ"):
+    # Near misses the word boundaries must reject: "Elsewhere" contains "els",
+    # "Riverside" is not "Riverton", and an unlisted country is out.
+    for loc in ("Elsewhere, Texas", "London, UK", "US Remote", "Riverside, NZ"):
         assert not location_matches(loc, patterns), loc
     # No filter configured -> keep everything.
     assert location_matches("London, UK", [])

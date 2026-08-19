@@ -3,7 +3,7 @@
 Teamtailor career sites publish a public JSON Feed at `/jobs.json` on the
 board's own host, so a target's `slug` is that host:
 
-    {host}           e.g.  careers.mantelgroup.com.au
+    {host}           e.g.  careers.<company>.com
 
 Each feed item carries a JSON-LD `_jobposting` (schema.org JobPosting) with the
 location(s), description, and posted date — no per-posting detail call needed.
@@ -25,8 +25,8 @@ def _strip_html(text: str) -> str:
 def _locations(jobposting: dict) -> str:
     """Join a JobPosting's one-or-many jobLocation places into a location string.
 
-    A role often lists several offices (Sydney; Melbourne; Auckland); keeping
-    them all lets fetch.py's location filter see any AU one.
+    A role often lists several offices; keeping them all lets fetch.py's
+    location filter see any one of them, not just the first.
     """
     locs = jobposting.get("jobLocation") or []
     if isinstance(locs, dict):

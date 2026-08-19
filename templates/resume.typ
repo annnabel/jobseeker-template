@@ -12,7 +12,7 @@
 #set par(justify: false, leading: 0.55em)
 
 #align(center)[#text(size: 18pt, weight: "bold")[Full Name]]
-#align(center)[email\@example.com  |  City, ST  |  github.com/handle]
+#align(center)[email\@example.com  |  City, Region  |  a link worth following]
 #v(0.4em)
 
 == Summary

@@ -17,9 +17,14 @@ entirely theirs. Ask, never fill in.
 ## What you're building (in order)
 
 ### 1. `profile/goals.yaml` — where they want to GO (20 minutes, do it first)
-Copy `templates/goals.example.yaml`. This comes **before** the evidence bank,
-and the order is load-bearing: the goal decides which evidence is worth digging
-for, and without it triage can only recognise the job they already have.
+Copy `templates/goals.example.yaml`. **Every value in it is an angle-bracketed
+placeholder** — there is no default track, no default field, no default
+seniority, and none of it is a suggestion. Replace all of them with the user's
+own words; never leave one standing, and never fill one in on their behalf.
+
+This comes **before** the evidence bank, and the order is load-bearing: the
+goal decides which evidence is worth digging for, and without it triage can
+only recognise the job they already have.
 
 Interview for one to three **tracks**. Per track: `label` (how they'd describe
 the job to a friend), `titles` (the title words employers actually use — push
@@ -102,8 +107,9 @@ A short description of how the user writes: plain vs. formal, dry vs. warm,
 first-person cover voice. This is the tailor's TONE parameter, written once.
 
 ### 5. `profile/config.yaml` — behaviour
-Copy `templates/config.example.yaml`. Interview for `constraints` (comp floor,
-remote, dealbreakers), `scoring.threshold`, `scoring.queue_cap`,
+Copy `templates/config.example.yaml`. Interview for `constraints` (comp floor
+in their own currency, remote, locations as their boards print them,
+dealbreakers in their own words), `scoring.threshold`, `scoring.queue_cap`,
 `cover.max_words`, `tracker.ghost_days`. The template defaults for
 `scoring.near_miss_band` / `scoring.near_miss_cap` (the tier that surfaces the
 closest below-threshold roles at Gate 1 so a thin night isn't silent) are

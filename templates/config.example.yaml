@@ -84,9 +84,9 @@ style:
 # great many perfectly good roles if you don't actually mean it. Set every line
 # to what is true for you.
 constraints:
-  comp_floor: null            # e.g. 180000 (numbers only, your currency)
+  comp_floor: null            # a number in your own currency, or null for none
   remote: preferred           # required | preferred | onsite_ok
-  locations: []               # e.g. ["Remote (US)", "New York, NY"]
+  locations: []               # the places you'd work, written as you'd write them
   notice_period_weeks: null
   max_travel_pct: null
-  dealbreakers: []            # e.g. ["on-call rotation", "no equity"]
+  dealbreakers: []            # the things that make a role a no, in your words

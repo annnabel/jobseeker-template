@@ -75,11 +75,15 @@ treat the missing domain title as friction rather than a kill, and state its
 `known_gaps` as `[SHORTFALL]`s. Neither direction licenses invention: a pivot
 is made credible by real adjacent evidence and an honest gap, never by blur.
 
-**This template is shared with people whose careers look nothing like its
-author's.** Never hardcode a role vocabulary, an industry, a seniority, or a
-skills taxonomy into a prompt or a script — read it from the user's own
-`goals.yaml`, `config.yaml`, and evidence bank. And never assume work produces
-numbers: `confidence: qualitative` is a first-class value, not a gap to fill.
+**This template is shared with people whose careers look nothing like each
+other's.** Never hardcode a role vocabulary, an industry, a seniority, a
+region, a currency, or a skills taxonomy into a prompt, a script, or an example
+file — read it from the user's own `goals.yaml`, `config.yaml`, `targets.yaml`,
+and evidence bank. Example values are placeholders a human replaces, never
+starting points: a filled-in one is read as a recommendation (PRD §20). A real
+name survives only where it documents the shape of an external API. And never
+assume work produces numbers: `confidence: qualitative` is a first-class value,
+not a gap to fill.
 
 ## Two gap types — do not conflate (PRD §8.5)
 

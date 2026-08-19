@@ -113,7 +113,7 @@ Include the 2–3 highest-impact improvements you applied as a result.
     weave the detail in ("Lifted adoption by building hands-on training,
     demos and how-to guides", never "Built the enablement layer: training,
     demos, guides").
-  - `estimated` metrics become directional ("roughly", "around"); 
+  - `estimated` metrics become directional ("roughly", "around");
     `qualitative` entries get no numeral at all.
 - **Skills** (the variant's `skills:` list — `technologies:` is the older name
   for the same field and still validates): reorganize into categories **that
@@ -123,9 +123,11 @@ Include the 2–3 highest-impact improvements you applied as a result.
   Education: Curricula, Year Levels, Assessment. Trades: Licences, Equipment,
   Compliance. Never impose engineering categories on a career that isn't one.
   Only skills a bank entry tags. Write each with its proper casing, never the
-  bank tag's lowercase form: SQL, Power BI, Generative AI, ACLS, NDIS, Stage 6
-  Biology; title case for practices (Change Management). `validate.py` matches
-  tags case-insensitively, so proper casing always validates.
+  bank tag's lowercase form — a product name keeps its own capitals, an
+  acronym stays upper case, a certification or curriculum keeps the spelling
+  its issuing body uses, and a practice takes title case (Change Management).
+  `validate.py` matches tags case-insensitively, so proper casing always
+  validates.
 - **Formatting**: standard headings, single column, no tables/graphics —
   `render.py` enforces ATS-parseable output. Keywords included naturally,
   never stuffed.

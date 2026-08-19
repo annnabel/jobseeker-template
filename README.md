@@ -10,7 +10,12 @@ It works from **where you want to go**, not just where you've been — so it fit
 a graduate, a career changer, and someone after the next rung of the same
 ladder equally well. Whatever your field.
 
-Created by **Annabel Nguyen**. MIT licensed — copy it, change it, keep it.
+**It assumes nothing about you.** No industry, no seniority, no country, no
+list of skills. Every example value you'll find in here is a blank to fill in,
+and everything the system judges a job by comes from answers you give it during
+setup.
+
+MIT licensed — copy it, change it, keep it.
 
 ---
 
@@ -235,9 +240,9 @@ python3 bin/check_template_clean.py # template-repo guard (fails in your instanc
 ```
 
 The full design and rationale live in `PRD.md` (§19 covers career tracks and
-what changed to make this shareable); the operating rules and red lines in
-`CLAUDE.md`.
+what changed to make this shareable, §20 why nothing in here is filled in for
+you); the operating rules and red lines in `CLAUDE.md`.
 
 ---
 
-Created by **Annabel Nguyen**. Released under the MIT License — see `LICENSE`.
+Released under the MIT License — see `LICENSE`.
