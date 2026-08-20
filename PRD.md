@@ -10,9 +10,10 @@ written. §14 onward amend them, in order, and a later amendment always wins:
 the flow that actually runs today is §18 (the sweep lands its shortlist on
 `main`; `/choose` is Gate 1; `/tailor` develops the keeps) plus §19 (roles are
 scored against `profile/goals.yaml` — where you want to go — not against your
-last job title) and §20 (nothing in the template describes a particular
-career, industry, or country). Where §4's diagram or §6 still show a sweep
-branch and a morning PR, read §18.
+last job title), §20 (nothing in the template describes a particular career,
+industry, or country) and §21 (keyword coverage is computed, not estimated;
+what an *angle* is). Where §4's diagram or §6 still show a sweep branch and a
+morning PR, read §18.
 
 Every example value in this repo — in the templates, the prompts, the
 docstrings, the tests — is a placeholder. The system carries no default field,
@@ -773,3 +774,100 @@ example values and comments, plus one log line and one error message that
 mentioned a region. `bin/check_template_clean.py` still guards the other half
 of the same promise — that no *person's* data reaches the shared template — and
 CI still runs it on the template repo only.
+
+## 21. Amendments (v3.8 — 2026-08-20, the scorecard and the angle)
+
+Two things the pipeline talked about constantly and defined nowhere: the ATS
+keyword coverage the tailor reported, and the *angle* every stage referred to.
+
+### 21.1 Coverage was a number the model made up
+
+§15.4 told the tailor to report "keyword coverage, n of m, with the missing
+ones listed" and left it there. So the model extracted the keywords, decided
+which ones its own draft covered, and graded itself — a number that drifts with
+the draft's confidence rather than its content, in the one place the product
+promises a mechanical check.
+
+**The fix: `bin/ats_score.py`.** Deterministic, no model in it, same JD and
+same draft in, same number out. It reads the posting, ranks the posting's *own*
+repeated terms (weighting a requirements block above the culture paragraph),
+tiers them `required` / `preferred` / `body`, and reports which appear in the
+variant and the cover. Matching is tolerant where tolerance is honest —
+`ci/cd` finds `CI-CD`, a plural finds its singular, `optimisation` finds
+`optimization` — because which spelling a posting uses says nothing about
+whether the candidate did the work.
+
+Wiring: the `tailor` subagent runs it as soon as a draft exists and again after
+every change, writes a scorecard (every keyword, its tier, a verdict:
+covered / claimable / **[SHORTFALL]**), and reports *the script's* numbers.
+`/tailor`, `/add`, and `/review` show that scorecard and re-run the script when
+a Gate 2 answer lets a miss be covered honestly.
+
+**What it is not.** Not a fit score — triage's is still the only one (§8.5).
+Not a target: there is no floor, deliberately, because a floor is an
+instruction to reach a number and this system's whole point is that a draft
+stops where the evidence stops. A draft at 12 of 20 with every miss honestly a
+[SHORTFALL] is finished; a draft at 19 of 20 with one stretched bullet is the
+failure G6 warns about. Coverage rises two honest ways — surfacing evidence
+that was buried, and using the posting's word for work an entry plainly
+describes — and no third way. The script also flags a term repeated past
+`ats.max_repeats`, because stuffing loses the human reader the parser won.
+
+Field-neutral by construction (§20): no skills list, no role vocabulary, no
+industry taxonomy. It knows English function words and hiring-document
+boilerplate; everything else it learns from the posting in front of it, and
+every cue list is overridable under `ats:` in `config.yaml`.
+
+### 21.2 "Angle" was load-bearing and undefined
+
+`## Angles` was triage's positive support signal, the thing `/tailor` chose and
+reported, and the target of every track's `supporting_angles`. Its definition
+was five words in `/setup`: "derive 3+ angles (positioning stances)". The
+format was a free bullet list, nothing linked an angle to the evidence behind
+it, and nothing checked that an angle a variant claimed existed at all.
+
+**The definition, stated once.** An angle is a **positioning stance: one claim
+about what the candidate is *for*, proved by at least two evidence entries,
+aimed at a track.** Three things sit side by side and are not interchangeable:
+
+| | holds | answers |
+|---|---|---|
+| `goals.yaml` track | titles, seniority, pivot | what am I applying FOR |
+| `evidence-bank.md` entries | what happened, with `confidence` | what have I DONE |
+| `evidence-bank.md` `## Angles` | claim, proof, serves | what is the ARGUMENT |
+
+**The format**, in the bank (`templates/angle-entry.md`):
+
+```
+### angle: <slug>
+claim:  one line, the candidate's own words
+proof:  ev:0031, ev:0044
+serves: <track ids from goals.yaml>
+```
+
+The original one-bullet shape still parses, so a bank written before this
+amendment keeps working; `--lint-bank` reports it as unproven rather than
+breaking it.
+
+**Enforcement, at the linter's usual boundary.** `validate.py --lint-bank`
+fails an angle with no claim, an angle fewer than two entries support ("an
+angle nothing proves is a slogan"), an angle citing an `ev:` that isn't in the
+bank, and an entry citing an angle the bank never declared. Resume mode fails a
+variant positioned on an angle the bank doesn't hold — the positioning is
+provenance like everything else. What it still cannot judge is whether an angle
+is a *good* pitch; `/setup` asks the human that out loud.
+
+**The angle now changes the draft.** It used to be a label in a report. The
+`tailor` prompt makes the choice do three things or it wasn't a choice: the
+summary opens on the angle's claim made concrete for this role, the angle's
+`proof` entries lead the bullets within each role, and the skills order starts
+with the categories the angle rests on. The variant records `angle:` as a
+top-level key (`label:` remains accepted as its older spelling). `/setup`
+derives angles *after* the entries exist — an angle written first is a slogan
+looking for proof — and checks the block with `--lint-bank` before moving on.
+
+**What does not change.** Every red line holds. Neither the scorecard nor the
+angle licenses a claim: coverage is raised from evidence that already exists,
+and an angle is made credible by its proof entries. No gate moves, and nothing
+here runs in the unattended sweep — both belong to the interactive tailoring
+path (§15, §18).

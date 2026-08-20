@@ -34,6 +34,15 @@ Think of it as a very careful assistant that:
   companies you choose and leaves you a morning shortlist.
 - **Drafts for you.** For the roles you pick, it writes a tailored resume and
   cover letter in plain markdown, easy to read on your phone.
+- **Writes for the screening software, then for the human.** Most applications
+  are read by keyword-matching software first. A checker reads the job ad,
+  works out which words that employer keeps repeating, and reports exactly
+  which of them your draft uses — so the fix is a real one, not a guess. It
+  will re-word your own experience in the employer's language and pull forward
+  the evidence that proves the point, and it will never add a skill you don't
+  have: anything it can't cover honestly is written down as a gap for you to
+  see. It also flags a word repeated so often the draft reads as stuffed,
+  because a person reads it after the software does.
 - **Never makes things up.** Every claim in every draft must trace back to a
   fact *you* told it during setup. An automated checker blocks drafts that
   invent numbers, employers, or technologies, and even bans AI-sounding
@@ -236,6 +245,8 @@ python3 -m pytest tests/            # acceptance tests
 python3 bin/fetch.py --dry-run      # fetch + dedupe, writes nothing
 python3 bin/seen.py status          # what the dedupe index has seen
 python3 bin/validate.py <variant.yaml>
+python3 bin/validate.py --lint-bank      # the bank's angles: claimed, proved, used
+python3 bin/ats_score.py --jd jd.md --variant <variant.yaml>   # keyword coverage
 python3 bin/check_template_clean.py # template-repo guard (fails in your instance, by design)
 ```
 

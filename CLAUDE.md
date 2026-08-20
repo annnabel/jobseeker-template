@@ -60,13 +60,19 @@ These hold everywhere, but especially there:
 - **Bookkeeping is not a decision.** Gates review judgment; never gate a fact.
   Seen-state is a fact and goes straight to `main`.
 
-## Goals vs. evidence — do not conflate (PRD §19)
+## Goals vs. evidence vs. angle — do not conflate (PRD §19, §21)
 
 - **`profile/goals.yaml`** — where the user wants to **go**. Ordered tracks,
   each with the titles that mean it, the stage it sits at, and whether it is a
   `pivot`. This is what a role is scored *against*.
 - **`profile/evidence-bank.md`** — where they have **been**. This is what a
   claim is *supported by*.
+- **`profile/evidence-bank.md` → `## Angles`** — the **argument** connecting
+  the two: one claim about what the candidate is *for*, proved by two or more
+  evidence entries, aimed at a track. Every tailored resume picks exactly one,
+  and that choice sets the summary's opening and which bullets lead. An angle
+  no evidence proves is a slogan (`validate.py --lint-bank` fails it); an angle
+  the bank never declared cannot appear on a variant.
 
 A role that matches the history but no track is off-target: score it low and
 say why. A role that matches a `pivot` track is on-target even though the
@@ -91,6 +97,16 @@ not a gap to fill.
   answered at Gate 2 and written back to the evidence bank.
 - **`[SHORTFALL]`** — the candidate doesn't have something the *role* wants. Not
   answerable. State it plainly; it appends to `## Shortfalls`.
+
+## ATS keyword coverage is not a fit score (PRD §21)
+
+`bin/ats_score.py` computes what fraction of a posting's own repeated terms
+appear in a draft. It measures the **draft**, never the role — triage owns the
+only fit score — and a miss is never an instruction to write something. Cover a
+miss by surfacing evidence that already exists or by using the posting's word
+for work an entry plainly describes; anything else is a `[SHORTFALL]`, stated
+plainly. Never report a coverage number you estimated rather than ran, and
+never stuff: a human reads the draft after the parser does.
 
 ## The linter's boundary (PRD §1/G6)
 

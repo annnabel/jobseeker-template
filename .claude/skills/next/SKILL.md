@@ -18,6 +18,11 @@ derived, not a decision).
    falls back to scoring roles by how much they resemble your last one."* If
    `goals.yaml` exists but `profile/evidence-bank.md` doesn't, the action is
    `/setup` to continue the interview.
+0b. **Does the bank hold together?** If `profile/evidence-bank.md` exists, run
+   `python3 bin/validate.py --lint-bank`. A failure is a top-three action and
+   the message says which: an angle nothing proves, an angle with no claim, or
+   an entry citing an angle the bank never declared (PRD §21). The fix is a
+   short `/setup`-style pass over `## Angles`, not a rewrite — say that.
 1. **Drafts awaiting submission** — `queue/ready/*/meta.yaml` on `main` (and
    this branch, if different). Each is a tailored role the human has not
    applied to yet. Sort by `closes:` date; a role closing soon is always the

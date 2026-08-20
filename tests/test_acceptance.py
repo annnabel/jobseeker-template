@@ -146,6 +146,89 @@ def test_render_markdown_missing_ev_fails(tmp_path):
     assert not out.exists()
 
 
+# ── angles: the bank's positioning stances (PRD §21) ───────────────────────
+
+BANK = os.path.join(FIX, "evidence-bank.md")
+
+
+def write_bank(tmp_path, angles: str, entry_angles: str = "platform-leader") -> str:
+    path = tmp_path / "bank.md"
+    path.write_text(
+        f"# Bank\n\n## Angles\n\n{angles}\n\n## Evidence\n\n"
+        f"### ev:0001 — First\nconfidence: qualitative\ntags:       a-skill\n"
+        f"angles:     {entry_angles}\n\n"
+        f"### ev:0002 — Second\nconfidence: qualitative\ntags:       a-skill\n"
+        f"angles:     {entry_angles}\n",
+        encoding="utf-8",
+    )
+    return str(path)
+
+
+def test_lint_bank_passes_a_well_formed_bank():
+    r = run("validate.py", "--lint-bank", "--bank", BANK)
+    assert r.returncode == 0, r.stderr
+    assert "angles hold" in r.stderr
+
+
+def test_lint_bank_catches_an_angle_no_entry_declares(tmp_path):
+    bank = write_bank(
+        tmp_path,
+        "### angle: platform-leader\nclaim:  Builds the paved road.\nproof:  ev:0001, ev:0002\n",
+        entry_angles="ghost-angle",
+    )
+    r = run("validate.py", "--lint-bank", "--bank", bank)
+    assert r.returncode != 0
+    assert "ghost-angle" in r.stderr
+
+
+def test_lint_bank_catches_an_angle_nothing_proves(tmp_path):
+    bank = write_bank(
+        tmp_path,
+        "### angle: thin-angle\nclaim:  A claim with one entry behind it.\nproof:  ev:0001\n",
+        entry_angles="",
+    )
+    r = run("validate.py", "--lint-bank", "--bank", bank)
+    assert r.returncode != 0
+    assert "slogan" in r.stderr
+
+
+def test_lint_bank_catches_a_claimless_angle(tmp_path):
+    bank = write_bank(tmp_path, "### angle: platform-leader\nproof:  ev:0001, ev:0002\n")
+    r = run("validate.py", "--lint-bank", "--bank", bank)
+    assert r.returncode != 0
+    assert "no claim line" in r.stderr
+
+
+def test_legacy_bullet_angles_still_parse(tmp_path):
+    # A bank written before the block format keeps working (PRD §21).
+    bank = write_bank(tmp_path, "- `platform-leader` — builds the paved road.")
+    r = run("validate.py", "--lint-bank", "--bank", bank)
+    assert r.returncode == 0, r.stderr
+
+
+def test_variant_positioned_on_an_undeclared_angle_fails(tmp_path):
+    variant = tmp_path / "variant.yaml"
+    variant.write_text(
+        "angle: invented-angle\nsections:\n  - heading: Summary\n"
+        "    bullets:\n      - text: \"Ran the platform.\"\n        ev: ev:0031\n",
+        encoding="utf-8",
+    )
+    r = run("validate.py", str(variant), "--bank", BANK, "--resume", os.path.join(FIX, "resume.yaml"))
+    assert r.returncode != 0
+    assert "invented-angle" in r.stderr
+
+
+def test_variant_may_still_declare_its_angle_under_the_old_label_key():
+    # variant_good.yaml carries `label: platform-leader`, the original spelling.
+    r = run(
+        "validate.py",
+        os.path.join(FIX, "variant_good.yaml"),
+        "--bank", BANK,
+        "--resume", os.path.join(FIX, "resume.yaml"),
+    )
+    assert r.returncode == 0, r.stderr
+
+
 # ── fetch.py dry-run ───────────────────────────────────────────────────────
 
 

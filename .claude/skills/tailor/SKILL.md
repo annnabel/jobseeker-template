@@ -70,8 +70,9 @@ from the shortlist unchanged — `seen.py audit` needs them — and setting
 `status: queued`, which is what the tracker expects for a draft awaiting
 Gate 2) — and
 self-validates (`validate.py`, `validate.py --cover`, with `--note` where a
-company note exists). **Markdown only. No PDF** — the human makes their own
-file at submit time.
+company note exists) and scores itself with `bin/ats_score.py` — the keyword
+coverage it reports is that script's output, not its own estimate (PRD §21).
+**Markdown only. No PDF** — the human makes their own file at submit time.
 
 The tailor also researches the company on the public web for the cover's hook
 (PRD §16): findings land in `profile/companies/<slug>.md` with source URLs
@@ -88,7 +89,16 @@ show the [SHORTFALL]s — do not ship a bad draft, and do not paper over it.
 ## Step 4 — review it together, right now
 
 Walk each draft exactly as `/review` would: show `resume.md` and `cover.md`,
-the ATS keyword alignment, and the changes-made list from the tailor's report.
+the ATS scorecard, and the changes-made list from the tailor's report. Show the
+scorecard as the tailor produced it — required tier first, every miss with its
+verdict — and say plainly which misses are [SHORTFALL]s. If the human's answer
+to a `[GAP]` adds evidence that covers a miss, re-run
+
+```
+python3 bin/ats_score.py --jd jd.md --variant <variant.yaml> --cover cover.md
+```
+
+after re-tailoring, and quote the new number rather than the old one.
 Answer the `[GAP]`s (write answers back to `profile/evidence-bank.md` as
 proper entries with tags, scope, confidence, source, narrative — then
 re-tailor the affected bullet). State the `[SHORTFALL]`s plainly. Apply the
@@ -112,9 +122,10 @@ and tell them `/review` picks it up later.
 Commit `queue/` (and any evidence-bank / company-note updates) on `main` and
 push (`git pull --rebase origin main` first if the push is rejected). Then
 close the session with the tailor's report, one block per developed role —
-angle chosen, ATS keyword coverage (n of m, missing ones listed), changes
-made, [GAP]s (and their answers if resolved live), [SHORTFALL]s, top-5 JD
-keywords used, personalization strategy, and suggestions to strengthen. Note
+angle chosen (with the proof entries it led with), the ATS scorecard (required
+/ preferred / overall, misses with verdicts), changes made, [GAP]s (and their
+answers if resolved live), [SHORTFALL]s, top-5 required-tier keywords used,
+personalization strategy, and suggestions to strengthen. Note
 the discarded roles in one line. There is no PR — the commit on `main` is the
 record, and this report is the human's copy (PRD §18).
 

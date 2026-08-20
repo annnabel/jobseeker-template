@@ -3,6 +3,7 @@
 
     validate.py <variant.yaml> [--bank profile/evidence-bank.md] [--resume profile/resume.yaml]
     validate.py --cover <cover.md> --variant <variant.yaml> [--bank ...] [--note ...]
+    validate.py --lint-bank [--bank profile/evidence-bank.md]
 
 Deterministic. Regex-able. No model in the gate. Exits non-zero on any
 violation, printing every violation found (not just the first).
@@ -67,6 +68,122 @@ def bank_tags(entries: dict[str, dict]) -> set[str]:
     for e in entries.values():
         tags.update(e["tags"])
     return tags
+
+
+def entry_angles(entries: dict[str, dict]) -> dict[str, list[str]]:
+    """{ev_id: [angle slug, ...]} from each entry's `angles:` field."""
+    out: dict[str, list[str]] = {}
+    for ev, e in entries.items():
+        raw = e["raw"].get("angles", "")
+        out[ev] = [a.strip().lower() for a in raw.split(",") if a.strip()]
+    return out
+
+
+# ── angle parsing (PRD §21) ────────────────────────────────────────────────
+
+ANGLE_HEADER = re.compile(
+    r"^###\s+angle:\s*([a-z0-9][a-z0-9-]*)\s*$", re.MULTILINE | re.IGNORECASE
+)
+LEGACY_ANGLE = re.compile(
+    r"^[-*]\s+`([a-z0-9][a-z0-9-]*)`\s*[—-]\s*(.+)$", re.MULTILINE | re.IGNORECASE
+)
+EV_REF = re.compile(r"ev:\d+")
+
+
+def parse_angles(path: str) -> dict[str, dict]:
+    """Parse the bank's `## Angles` block into {slug: {claim, proof, serves}}.
+
+    An angle is a positioning stance: one claim, proved by evidence, aimed at a
+    track (PRD §21). The current shape is a block per angle —
+
+        ### angle: the-slug
+        claim:  one line, in the candidate's own words
+        proof:  ev:0031, ev:0044
+        serves: <track ids from goals.yaml>
+
+    — and the original one-bullet shape (`- \`slug\` — claim`) still parses, so
+    a bank written before §21 keeps working. A legacy angle carries no proof,
+    which `--lint-bank` reports: an angle nothing proves is a slogan.
+    """
+    with open(path, encoding="utf-8") as fh:
+        text = fh.read()
+
+    angles: dict[str, dict] = {}
+    headers = list(ANGLE_HEADER.finditer(text))
+    for i, m in enumerate(headers):
+        slug = m.group(1).lower()
+        end = headers[i + 1].start() if i + 1 < len(headers) else len(text)
+        block = text[m.end() : end]
+        # Stop at the next top-level section, so `## Evidence` is not read in.
+        block = re.split(r"^##\s", block, maxsplit=1, flags=re.MULTILINE)[0]
+        fields: dict[str, str] = {}
+        for line in block.splitlines():
+            fm = FIELD.match(line.strip())
+            if fm:
+                fields[fm.group(1)] = fm.group(2).strip()
+        angles[slug] = {
+            "claim": fields.get("claim", "").strip(),
+            "proof": EV_REF.findall(fields.get("proof", "")),
+            "serves": [s.strip() for s in fields.get("serves", "").split(",") if s.strip()],
+            "legacy": False,
+        }
+
+    for m in LEGACY_ANGLE.finditer(text):
+        slug = m.group(1).lower()
+        angles.setdefault(
+            slug, {"claim": m.group(2).strip(), "proof": [], "serves": [], "legacy": True}
+        )
+    return angles
+
+
+def variant_angle(variant: dict) -> str:
+    """The angle a variant declares, under either accepted key.
+
+    `angle:` is the current key; `label:` is what early variants called the
+    same thing.
+    """
+    for key in ("angle", "label"):
+        value = variant.get(key)
+        if value and str(value).strip():
+            return str(value).strip().lower()
+    return ""
+
+
+def lint_bank(bank_path: str) -> list[str]:
+    """Check the bank's angles hold together. PRD §21.
+
+    Deterministic, like everything else in this file, and the same boundary
+    applies: it catches an angle that does not exist or that nothing proves.
+    Whether an angle is a *good* pitch is a human judgment.
+    """
+    if not os.path.exists(bank_path):
+        return [f"evidence bank not found: {bank_path}"]
+    errors: list[str] = []
+    entries = parse_bank(bank_path)
+    angles = parse_angles(bank_path)
+
+    if not angles:
+        errors.append("bank declares no `## Angles`; every variant is then unpositioned")
+
+    for ev, slugs in entry_angles(entries).items():
+        for slug in slugs:
+            if slug not in angles:
+                errors.append(f"{ev} claims angle {slug!r} which is not declared in `## Angles`")
+
+    for slug, angle in sorted(angles.items()):
+        if not angle["claim"]:
+            errors.append(f"angle {slug!r} has no claim line")
+        for ev in angle["proof"]:
+            if ev not in entries:
+                errors.append(f"angle {slug!r} cites {ev} which is not in the bank")
+        proven_by = [ev for ev, s in entry_angles(entries).items() if slug in s]
+        support = set(angle["proof"]) | set(proven_by)
+        if len(support) < 2:
+            errors.append(
+                f"angle {slug!r} rests on {len(support)} evidence entr(y/ies); an angle "
+                f"two entries cannot prove is a slogan (add `proof:` or tag more entries)"
+            )
+    return errors
 
 
 # ── style gate ─────────────────────────────────────────────────────────────
@@ -276,6 +393,19 @@ def validate_resume(
                 f"(use directional phrasing): {snippet!r}"
             )
 
+    # A declared angle must exist in the bank. The angle is what the resume
+    # argues; an argument the bank never makes is invention like any other
+    # (PRD §21). Silent when the variant declares none, or the bank predates
+    # angles entirely.
+    angle = variant_angle(variant)
+    if angle:
+        angles = parse_angles(bank_path)
+        if angles and angle not in angles:
+            errors.append(
+                f"variant is positioned on angle {angle!r} which the bank does not declare "
+                f"(declared: {', '.join(sorted(angles)) or 'none'})"
+            )
+
     # A skill in the skills list must be tagged by some evidence entry.
     for skill in claimed_skills(variant):
         if skill.strip().lower() not in tags:
@@ -402,6 +532,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--resume", default="profile/resume.yaml")
     parser.add_argument("--note", help="optional company note whose numerals are also allowed")
     parser.add_argument(
+        "--lint-bank",
+        action="store_true",
+        help="check the bank's `## Angles` block instead of a draft (PRD §21)",
+    )
+    parser.add_argument(
         "--config",
         default="profile/config.yaml",
         help="config.yaml providing style.banned; built-in defaults if absent",
@@ -410,7 +545,10 @@ def main(argv: list[str] | None = None) -> int:
 
     banned, banned_regex = load_banned(args.config)
 
-    if args.cover:
+    if args.lint_bank:
+        errors = lint_bank(args.bank)
+        mode = f"bank {args.bank}"
+    elif args.cover:
         variant_path = args.variant_flag or args.variant
         if not variant_path:
             parser.error("--cover requires --variant")
@@ -429,7 +567,10 @@ def main(argv: list[str] | None = None) -> int:
         for e in errors:
             print(f"  ✗ {e}", file=sys.stderr)
         return 1
-    print(f"OK: {mode} — provenance clean", file=sys.stderr)
+    print(
+        f"OK: {mode} — {'angles hold' if args.lint_bank else 'provenance clean'}",
+        file=sys.stderr,
+    )
     return 0
 
 
