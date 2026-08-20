@@ -33,7 +33,7 @@ def posting(**overrides):
         slug="acme",
         company="Acme",
         title="Staff Engineer",
-        location="Sydney",
+        location="Riverton",
         url="https://example.com/jobs/1",
     )
     base.update(overrides)
@@ -52,15 +52,15 @@ def write_raw(tmp_path, p, name="p.json"):
 
 
 def test_fingerprint_ignores_case_spacing_dashes():
-    a = posting(title="Staff Engineer", company="Acme", location="Sydney")
-    b = posting(title="  staff—engineer ", company="ACME", location=" SYDNEY ")
+    a = posting(title="Staff Engineer", company="Acme", location="Riverton")
+    b = posting(title="  staff—engineer ", company="ACME", location=" RIVERTON ")
     assert a.fingerprint() == b.fingerprint()
 
 
 def test_fingerprint_keeps_seniority_and_location_distinct():
     a = posting(title="Staff Engineer")
     assert a.fingerprint() != posting(title="Senior Engineer").fingerprint()
-    assert a.fingerprint() != posting(location="Melbourne").fingerprint()
+    assert a.fingerprint() != posting(location="Lakeside").fingerprint()
 
 
 # ── dedupe() ───────────────────────────────────────────────────────────────
@@ -165,17 +165,17 @@ def test_audit_ignores_manual_finds(tmp_path):
 
 
 def test_audit_prefers_meta_fingerprint_field(tmp_path):
-    # Adapters often set company to the board slug ("cultureamp") while the
-    # sweep writes the pretty name ("Culture Amp") into meta.yaml. With the
+    # Adapters often set company to the board slug ("acmelabs") while the
+    # sweep writes the pretty name ("Acme Labs") into meta.yaml. With the
     # exact fingerprint stored in meta, the audit must still match.
-    p = posting(company="cultureamp", title="Staff Engineer", location="Sydney")
+    p = posting(company="acmelabs", title="Staff Engineer", location="Riverton")
     raw = write_raw(tmp_path, p)
     run("seen.py", "mark", "--disposition", "shortlisted",
         "--date", "2026-07-17", "--root", str(tmp_path), raw)
-    d = tmp_path / "queue" / "shortlist" / "culture-amp-staff-engineer"
+    d = tmp_path / "queue" / "shortlist" / "acme-labs-staff-engineer"
     d.mkdir(parents=True)
     (d / "meta.yaml").write_text(
-        "company: Culture Amp\ntitle: Staff Engineer\nlocation: Sydney, Australia\n"
+        "company: Acme Labs\ntitle: Staff Engineer\nlocation: Riverton, Eastland\n"
         f"fingerprint: {p.fingerprint()}\nstatus: shortlisted\nswept: 2026-07-17\n",
         encoding="utf-8",
     )

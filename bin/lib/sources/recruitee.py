@@ -8,10 +8,10 @@ state / country, an HTML `description` and a second HTML `requirements` block
 (concatenated here so the queued JD is complete), and `published_at` /
 `created_at` as "YYYY-MM-DD HH:MM:SS UTC" (normalized to ISO for freshness).
 
-Note: Recruitee is common among European scale-ups but rare among Australian
-employers — a probe of ~110 slugs on 2026-07-18 found no AU board. This adapter
-exists for reusability (PRD §12) and for the day an AU employer adopts it; it
-is wired in but `targets.yaml` lists no Recruitee board yet.
+Note: Recruitee is common among European scale-ups and thinner on the ground
+elsewhere, so whether it is worth a line in your `targets.yaml` depends
+entirely on where you are looking. The adapter is wired in either way (PRD
+§12); an unused one costs nothing.
 """
 from __future__ import annotations
 

@@ -3,8 +3,16 @@
 > Source of truth. Exhaustive. Not for submission.
 
 ## Angles
-- `platform-leader` — builds the paved road other teams ship on.
-- `cost-optimizer` — finds the expensive thing and makes it cheap.
+
+### angle: platform-leader
+claim:  Builds the paved road other teams ship on.
+proof:  ev:0031, ev:0033
+serves: primary
+
+### angle: cost-optimizer
+claim:  Finds the expensive thing and makes it cheap.
+proof:  ev:0031, ev:0032
+serves: primary
 
 ## Evidence
 

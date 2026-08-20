@@ -7,14 +7,15 @@ enter the queue at all, it never ranks them. A posting with no title is kept —
 missing data goes to triage, which can judge it; a filter cannot.
 
 Off by default. Unlike the location filter, this one can drop a role a keyword
-rule misjudges (a "Growth Associate" posting that is really the analyst job),
-so the sweep reports the drop count every run rather than letting the narrowing
-go unseen.
+rule misjudges — a posting whose title names the team, the grade, or the
+employer's own coinage rather than the work — so the sweep reports the drop
+count every run rather than letting the narrowing go unseen.
 """
 from __future__ import annotations
 
 import os
 import re
+import sys
 
 import yaml
 
@@ -32,12 +33,19 @@ def load_goals(root: str) -> dict:
 
     Absent goals is a valid state (the file arrives during /setup), so this
     never raises on a missing file — callers degrade to no role filtering.
+    A file that parses to something other than a mapping (a stray list, a bare
+    string) is reported and treated as absent: a hand-edited profile must not
+    end a sweep with an AttributeError three frames down.
     """
     path = os.path.join(root, "profile", "goals.yaml")
     if not os.path.exists(path):
         return {}
     with open(path, encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+        data = yaml.safe_load(fh) or {}
+    if not isinstance(data, dict):
+        print(f"warning: {path} is not a mapping; ignoring it", file=sys.stderr)
+        return {}
+    return data
 
 
 def role_filter(goals: dict) -> list[str]:

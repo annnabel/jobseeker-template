@@ -5,6 +5,22 @@ them cheaply, tailors resumes and cover letters with provenance-checked claims,
 and opens a PR a human reviews before applying **by hand**. It never
 auto-submits, never scrapes, and never invents.
 
+**How to read this.** §1–§13 are the original v3 design and are kept as
+written. §14 onward amend them, in order, and a later amendment always wins:
+the flow that actually runs today is §18 (the sweep lands its shortlist on
+`main`; `/choose` is Gate 1; `/tailor` develops the keeps) plus §19 (roles are
+scored against `profile/goals.yaml` — where you want to go — not against your
+last job title), §20 (nothing in the template describes a particular career,
+industry, or country) and §21 (keyword coverage is computed, not estimated;
+what an *angle* is). Where §4's diagram or §6 still show a sweep branch and a
+morning PR, read §18.
+
+Every example value in this repo — in the templates, the prompts, the
+docstrings, the tests — is a placeholder. The system carries no default field,
+no default seniority, no default region, and no skills taxonomy; it reads all
+of that from the user's own `goals.yaml`, `config.yaml`, `targets.yaml`, and
+evidence bank (§19, §20).
+
 ## 1. Goals
 
 | # | Goal | Measured by |
@@ -115,6 +131,15 @@ check.
 | Ashby | `https://api.ashbyhq.com/posting-api/job-board/{slug}` |
 | Workable | `https://apply.workable.com/api/v1/widget/accounts/{slug}?details=true` |
 | SmartRecruiters | `https://api.smartrecruiters.com/v1/companies/{slug}/postings` |
+
+Five more adapters ship alongside these — Recruitee, Workday, Oracle
+Recruiting Cloud, PageUp, Teamtailor — each reaching per-tenant hosts that
+have to be allowlisted individually; `templates/targets.example.yaml` carries
+the slug shapes and `docs/ENVIRONMENT.md` §1 the hosts. Which of the ten
+matter to a given user is entirely a function of where they are looking, and
+several fields (public sector, healthcare, education, small local employers)
+are largely off all of them — that is a supported outcome, not a failure: the
+system is `/add`-driven and the sweep is a bonus (§14.2, §14.5).
 
 No auth, no anti-bot, no ToS problem — and you see roles the hour they post.
 Endpoint shapes drift; each lives behind an adapter (§8.1) so a break is one
@@ -296,8 +321,9 @@ in the PR body; only `[GAP]` has a loop.
 
 ### 8.6 Cover letter contract
 
-Length: `config.cover.max_words`, default 250 (behavioural → config, not a
-constant). Structure: specific hook → why-this-candidate with supported metrics →
+Length: `config.cover.max_words` (behavioural → config, not a constant).
+Default 250 as first written; raised to 450 in §15.5 once tailoring became
+interactive, which is what `templates/config.example.yaml` ships. Structure: specific hook → why-this-candidate with supported metrics →
 one strength by example → confident close with a CTA. The hook comes from the
 company note or the JD, never the web. Banned: "I am writing to apply", "excited
 to apply", restating the resume, generic praise, buzzword stacking, first person
@@ -529,8 +555,8 @@ crashes; none changes a gate or a red line.
    fingerprint in each raw JSON; the sweep copies it verbatim into shortlist
    `meta.yaml`; `/tailor` carries it into `queue/ready/`. `seen.py` prefers
    the stored fingerprint over recomputing from meta text, so a prettified
-   company name ("Culture Amp" vs the board slug `cultureamp`) can no longer
-   produce a false audit MISS. `seen.py mark`/`check` also accept a queue
+   company name (the two-word display name vs the board's own squashed slug)
+   can no longer produce a false audit MISS. `seen.py mark`/`check` also accept a queue
    `meta.yaml` or directory, so a missing seen record is repairable after the
    raw files are gone.
 
@@ -704,3 +730,144 @@ acceptance tests, and `bin/check_template_clean.py` — a guard that fails if
 personal data is ever committed to the shared template. The guard runs in CI
 only on the template repo itself, so a friend's private instance, whose
 `profile/` is *supposed* to be full, never sees it fail.
+
+## 20. Amendments (v3.7 — 2026-08-19, no defaults, no identifiers)
+
+§19.2 fixed the parts of the template that named its author or assumed her
+industry. A second pass found the same defect one layer down, in the values
+nobody thinks of as content: the *examples*. They were all from one career, in
+one country.
+
+**What was still specific.** `goals.example.yaml` shipped a filled-in "data
+analyst" track — a real label, real title keywords, a real seniority — so the
+file read as a starting point rather than a form, and the first user to keep a
+line of it would be scored against a career they never named.
+`targets.example.yaml` and the test suite encoded one region's cities, states,
+and country codes as the worked example of a `location_filter`.
+`config.example.yaml`'s constraint comments assumed a salary band and a
+tech-industry idea of a dealbreaker. Four adapters described their behaviour in
+terms of that same region ("scoping to AU", "nothing AU is lost"), and one
+printed it at runtime. The `tailor` prompt's casing examples named one
+country's certifications and another's school curriculum. None of this was
+wrong for its author; all of it was noise, or worse a nudge, for anyone else.
+
+**The rule, stated once.** *The template defines nothing about the person using
+it.* Not a field, not a seniority, not a region, not a currency, not a skills
+taxonomy, not a job title. Every value in an example file is an angle-bracketed
+placeholder that a human replaces; every worked example in a prompt either
+spans several unrelated fields or names none. Where a real name survives — a
+board slug in an adapter docstring, the smoke-test `curl` in
+`docs/ENVIRONMENT.md` — it is there because it documents the *shape of an
+external API* and a user needs something they can paste and verify, never
+because it is a recommendation. Attribution stays where attribution belongs:
+`LICENSE`.
+
+**Where the specifics went instead.** Nowhere — they are the user's to supply.
+`goals.yaml` holds the titles and the seniority, `config.yaml` the constraints
+and the currency, `targets.yaml` the companies and the locations, the evidence
+bank the skills vocabulary. Every one of those is read at runtime and edited
+only by the human (red line 7). A test needing a place name uses an invented
+one, so no region reads as the default.
+
+**What does not change.** No behaviour, no gate, no red line: this pass moved
+example values and comments, plus one log line and one error message that
+mentioned a region. `bin/check_template_clean.py` still guards the other half
+of the same promise — that no *person's* data reaches the shared template — and
+CI still runs it on the template repo only.
+
+## 21. Amendments (v3.8 — 2026-08-20, the scorecard and the angle)
+
+Two things the pipeline talked about constantly and defined nowhere: the ATS
+keyword coverage the tailor reported, and the *angle* every stage referred to.
+
+### 21.1 Coverage was a number the model made up
+
+§15.4 told the tailor to report "keyword coverage, n of m, with the missing
+ones listed" and left it there. So the model extracted the keywords, decided
+which ones its own draft covered, and graded itself — a number that drifts with
+the draft's confidence rather than its content, in the one place the product
+promises a mechanical check.
+
+**The fix: `bin/ats_score.py`.** Deterministic, no model in it, same JD and
+same draft in, same number out. It reads the posting, ranks the posting's *own*
+repeated terms (weighting a requirements block above the culture paragraph),
+tiers them `required` / `preferred` / `body`, and reports which appear in the
+variant and the cover. Matching is tolerant where tolerance is honest —
+`ci/cd` finds `CI-CD`, a plural finds its singular, `optimisation` finds
+`optimization` — because which spelling a posting uses says nothing about
+whether the candidate did the work.
+
+Wiring: the `tailor` subagent runs it as soon as a draft exists and again after
+every change, writes a scorecard (every keyword, its tier, a verdict:
+covered / claimable / **[SHORTFALL]**), and reports *the script's* numbers.
+`/tailor`, `/add`, and `/review` show that scorecard and re-run the script when
+a Gate 2 answer lets a miss be covered honestly.
+
+**What it is not.** Not a fit score — triage's is still the only one (§8.5).
+Not a target: there is no floor, deliberately, because a floor is an
+instruction to reach a number and this system's whole point is that a draft
+stops where the evidence stops. A draft at 12 of 20 with every miss honestly a
+[SHORTFALL] is finished; a draft at 19 of 20 with one stretched bullet is the
+failure G6 warns about. Coverage rises two honest ways — surfacing evidence
+that was buried, and using the posting's word for work an entry plainly
+describes — and no third way. The script also flags a term repeated past
+`ats.max_repeats`, because stuffing loses the human reader the parser won.
+
+Field-neutral by construction (§20): no skills list, no role vocabulary, no
+industry taxonomy. It knows English function words and hiring-document
+boilerplate; everything else it learns from the posting in front of it, and
+every cue list is overridable under `ats:` in `config.yaml`.
+
+### 21.2 "Angle" was load-bearing and undefined
+
+`## Angles` was triage's positive support signal, the thing `/tailor` chose and
+reported, and the target of every track's `supporting_angles`. Its definition
+was five words in `/setup`: "derive 3+ angles (positioning stances)". The
+format was a free bullet list, nothing linked an angle to the evidence behind
+it, and nothing checked that an angle a variant claimed existed at all.
+
+**The definition, stated once.** An angle is a **positioning stance: one claim
+about what the candidate is *for*, proved by at least two evidence entries,
+aimed at a track.** Three things sit side by side and are not interchangeable:
+
+| | holds | answers |
+|---|---|---|
+| `goals.yaml` track | titles, seniority, pivot | what am I applying FOR |
+| `evidence-bank.md` entries | what happened, with `confidence` | what have I DONE |
+| `evidence-bank.md` `## Angles` | claim, proof, serves | what is the ARGUMENT |
+
+**The format**, in the bank (`templates/angle-entry.md`):
+
+```
+### angle: <slug>
+claim:  one line, the candidate's own words
+proof:  ev:0031, ev:0044
+serves: <track ids from goals.yaml>
+```
+
+The original one-bullet shape still parses, so a bank written before this
+amendment keeps working; `--lint-bank` reports it as unproven rather than
+breaking it.
+
+**Enforcement, at the linter's usual boundary.** `validate.py --lint-bank`
+fails an angle with no claim, an angle fewer than two entries support ("an
+angle nothing proves is a slogan"), an angle citing an `ev:` that isn't in the
+bank, and an entry citing an angle the bank never declared. Resume mode fails a
+variant positioned on an angle the bank doesn't hold — the positioning is
+provenance like everything else. What it still cannot judge is whether an angle
+is a *good* pitch; `/setup` asks the human that out loud.
+
+**The angle now changes the draft.** It used to be a label in a report. The
+`tailor` prompt makes the choice do three things or it wasn't a choice: the
+summary opens on the angle's claim made concrete for this role, the angle's
+`proof` entries lead the bullets within each role, and the skills order starts
+with the categories the angle rests on. The variant records `angle:` as a
+top-level key (`label:` remains accepted as its older spelling). `/setup`
+derives angles *after* the entries exist — an angle written first is a slogan
+looking for proof — and checks the block with `--lint-bank` before moving on.
+
+**What does not change.** Every red line holds. Neither the scorecard nor the
+angle licenses a claim: coverage is raised from evidence that already exists,
+and an angle is made credible by its proof entries. No gate moves, and nothing
+here runs in the unattended sweep — both belong to the interactive tailoring
+path (§15, §18).

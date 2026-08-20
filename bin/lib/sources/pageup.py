@@ -4,16 +4,18 @@ PageUp's public candidate site returns a JSON envelope whose `results` field
 is an HTML fragment listing the jobs (title + apply link per `<li>`), with a
 `count` of total matches. A target's `slug` is the board path segment:
 
-    {instance}/{brand}/{lang}   e.g.  410/fb/en   (NAB)
+    {instance}/{brand}/{lang}   e.g.  410/fb/en
 
 Read it off a live PageUp URL: careers.pageuppeople.com/410/fb/en/... . Two
 quirks the adapter handles: the envelope is only returned as JSON when the
 request carries `X-Requested-With: XMLHttpRequest` (otherwise a rendered HTML
-page comes back), and the job list carries no location string — so location
-scoping is left to fetch.py's filter and triage. The boards wired in
-targets.yaml are AU-only, so nothing AU is lost. Pages are fixed at 10 items;
-`count` bounds the paging. Internal calls self-pace at 1s (fetch.py's ≤1
-req/sec/host budget only covers gaps between adapter invocations).
+page comes back), and the job list carries no location string — so every
+posting reaches triage and location scoping happens there rather than at fetch
+time. A single-region PageUp board therefore costs nothing; a multi-region one
+sends triage roles your `location_filter` would have dropped. Pages are fixed
+at 10 items; `count` bounds the paging. Internal calls self-pace at 1s
+(fetch.py's ≤1 req/sec/host budget only covers gaps between adapter
+invocations).
 """
 from __future__ import annotations
 
@@ -30,7 +32,7 @@ AJAX = {"X-Requested-With": "XMLHttpRequest"}
 JOB_RE = re.compile(
     r'<a class="job-link"\s+href="(?P<href>/[^"]+/job/\d+/[^"]+)">(?P<title>[^<]+)</a>'
 )
-MAX_PAGES = 100  # backstop; real boards are far smaller (NAB ~10 pages)
+MAX_PAGES = 100  # backstop; real boards are far smaller (tens of pages at most)
 
 
 def fetch(slug: str, location_filter: list[str] | None = None) -> list[Posting]:

@@ -46,6 +46,9 @@ def load_targets(root: str) -> tuple[list[dict], list[str]]:
         return [], []
     with open(path, encoding="utf-8") as fh:
         data = yaml.safe_load(fh) or {}
+    if not isinstance(data, dict):
+        print(f"warning: {path} is not a mapping; nothing to fetch", file=sys.stderr)
+        return [], []
     return data.get("companies", []) or [], data.get("location_filter", []) or []
 
 

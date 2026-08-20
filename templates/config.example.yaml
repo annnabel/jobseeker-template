@@ -24,6 +24,22 @@ cover:
   # Lower it only if you genuinely want shorter letters than the tailor writes.
   max_words: 450
 
+ats:
+  # bin/ats_score.py — deterministic keyword coverage for a tailored draft
+  # (PRD §21). Defaults are sensible; every key here is optional.
+  top_keywords: 25            # how many of the posting's own terms to score
+  max_repeats: 4              # more than this in one resume reads as stuffing
+  # Headings that open a hard-requirements block, and a nice-to-have block.
+  # These are hiring-document conventions, not your field's vocabulary — set
+  # them if your postings phrase these sections differently (another language,
+  # a public-sector template, an agency house style).
+  # required_cues:  ["requirements", "what you'll need", "selection criteria"]
+  # preferred_cues: ["nice to have", "desirable", "highly regarded"]
+  # body_cues:      ["responsibilities", "about", "benefits"]   # ends a block
+  # Words every posting in YOUR field says about every job, which would
+  # otherwise crowd out the real keywords. Added to the built-in list.
+  extra_boilerplate: []
+
 tracker:
   # Applied + silent this many days -> auto-ghosted. Silence needs no /log. G4.
   ghost_days: 21
@@ -84,9 +100,9 @@ style:
 # great many perfectly good roles if you don't actually mean it. Set every line
 # to what is true for you.
 constraints:
-  comp_floor: null            # e.g. 180000 (numbers only, your currency)
+  comp_floor: null            # a number in your own currency, or null for none
   remote: preferred           # required | preferred | onsite_ok
-  locations: []               # e.g. ["Remote (US)", "New York, NY"]
+  locations: []               # the places you'd work, written as you'd write them
   notice_period_weeks: null
   max_travel_pct: null
-  dealbreakers: []            # e.g. ["on-call rotation", "no equity"]
+  dealbreakers: []            # the things that make a role a no, in your words

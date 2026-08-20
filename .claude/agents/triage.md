@@ -21,9 +21,11 @@ numbers that disagree is worse than one you calibrated. Own this number.
 - `profile/config.yaml` → `constraints`: comp_floor, remote, locations,
   notice_period_weeks, max_travel_pct, dealbreakers. These apply to every
   track; a track's own `must_have` / `avoid` apply only to that track.
-- `profile/evidence-bank.md` → `## Angles` (the candidate's positioning
-  stances) and the role families their evidence covers — your **support**
-  signal. And `## Shortfalls`: things the candidate does NOT have.
+- `profile/evidence-bank.md` → `## Angles` and the role families their
+  evidence covers — your **support** signal. An angle is one claim about what
+  the candidate is *for*, with the `proof` entries behind it and the tracks it
+  `serves` (PRD §21); read the claims, not the slugs. And `## Shortfalls`:
+  things the candidate does NOT have.
 
 If `profile/goals.yaml` is missing, fall back to scoring against the bank's
 angles alone and say so in one clause of your `reason` ("no goals.yaml — scored

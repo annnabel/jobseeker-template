@@ -146,6 +146,89 @@ def test_render_markdown_missing_ev_fails(tmp_path):
     assert not out.exists()
 
 
+# ── angles: the bank's positioning stances (PRD §21) ───────────────────────
+
+BANK = os.path.join(FIX, "evidence-bank.md")
+
+
+def write_bank(tmp_path, angles: str, entry_angles: str = "platform-leader") -> str:
+    path = tmp_path / "bank.md"
+    path.write_text(
+        f"# Bank\n\n## Angles\n\n{angles}\n\n## Evidence\n\n"
+        f"### ev:0001 — First\nconfidence: qualitative\ntags:       a-skill\n"
+        f"angles:     {entry_angles}\n\n"
+        f"### ev:0002 — Second\nconfidence: qualitative\ntags:       a-skill\n"
+        f"angles:     {entry_angles}\n",
+        encoding="utf-8",
+    )
+    return str(path)
+
+
+def test_lint_bank_passes_a_well_formed_bank():
+    r = run("validate.py", "--lint-bank", "--bank", BANK)
+    assert r.returncode == 0, r.stderr
+    assert "angles hold" in r.stderr
+
+
+def test_lint_bank_catches_an_angle_no_entry_declares(tmp_path):
+    bank = write_bank(
+        tmp_path,
+        "### angle: platform-leader\nclaim:  Builds the paved road.\nproof:  ev:0001, ev:0002\n",
+        entry_angles="ghost-angle",
+    )
+    r = run("validate.py", "--lint-bank", "--bank", bank)
+    assert r.returncode != 0
+    assert "ghost-angle" in r.stderr
+
+
+def test_lint_bank_catches_an_angle_nothing_proves(tmp_path):
+    bank = write_bank(
+        tmp_path,
+        "### angle: thin-angle\nclaim:  A claim with one entry behind it.\nproof:  ev:0001\n",
+        entry_angles="",
+    )
+    r = run("validate.py", "--lint-bank", "--bank", bank)
+    assert r.returncode != 0
+    assert "slogan" in r.stderr
+
+
+def test_lint_bank_catches_a_claimless_angle(tmp_path):
+    bank = write_bank(tmp_path, "### angle: platform-leader\nproof:  ev:0001, ev:0002\n")
+    r = run("validate.py", "--lint-bank", "--bank", bank)
+    assert r.returncode != 0
+    assert "no claim line" in r.stderr
+
+
+def test_legacy_bullet_angles_still_parse(tmp_path):
+    # A bank written before the block format keeps working (PRD §21).
+    bank = write_bank(tmp_path, "- `platform-leader` — builds the paved road.")
+    r = run("validate.py", "--lint-bank", "--bank", bank)
+    assert r.returncode == 0, r.stderr
+
+
+def test_variant_positioned_on_an_undeclared_angle_fails(tmp_path):
+    variant = tmp_path / "variant.yaml"
+    variant.write_text(
+        "angle: invented-angle\nsections:\n  - heading: Summary\n"
+        "    bullets:\n      - text: \"Ran the platform.\"\n        ev: ev:0031\n",
+        encoding="utf-8",
+    )
+    r = run("validate.py", str(variant), "--bank", BANK, "--resume", os.path.join(FIX, "resume.yaml"))
+    assert r.returncode != 0
+    assert "invented-angle" in r.stderr
+
+
+def test_variant_may_still_declare_its_angle_under_the_old_label_key():
+    # variant_good.yaml carries `label: platform-leader`, the original spelling.
+    r = run(
+        "validate.py",
+        os.path.join(FIX, "variant_good.yaml"),
+        "--bank", BANK,
+        "--resume", os.path.join(FIX, "resume.yaml"),
+    )
+    assert r.returncode == 0, r.stderr
+
+
 # ── fetch.py dry-run ───────────────────────────────────────────────────────
 
 
@@ -155,25 +238,42 @@ def test_fetch_dry_run_no_targets(tmp_path):
     assert r.returncode == 0, r.stderr
 
 
+def test_fetch_survives_a_profile_yaml_that_is_not_a_mapping(tmp_path):
+    # A hand-edited profile file that parses to a list must degrade to "no
+    # targets, no role filter" with a warning, never an AttributeError.
+    profile = tmp_path / "profile"
+    profile.mkdir()
+    (profile / "targets.yaml").write_text("- example-co\n- another-co\n", encoding="utf-8")
+    (profile / "goals.yaml").write_text("- a track\n", encoding="utf-8")
+    r = run("fetch.py", "--dry-run", "--root", str(tmp_path))
+    assert r.returncode == 0, r.stderr
+    assert "not a mapping" in r.stderr
+    assert "Traceback" not in r.stderr
+
+
 def test_location_filter_matching():
     sys.path.insert(0, os.path.join(BIN, "lib"))
     from locations import location_matches
 
+    # Placeholder place names: the filter is regex-only and knows no geography,
+    # so the test exercises the shapes boards actually print, not a real region.
     patterns = [
-        "sydney", "australia", r"\bau\b", r"\baus\b", r"\bnsw\b",
-        "melbourne", "brisbane", "perth", "adelaide", "canberra",
+        "riverton", "eastland", r"\bel\b", r"\bels\b", r"\bnorthshire\b",
+        "lakeside", "bayview", "hillcrest", "pinegrove", "westport",
     ]
     for loc in (
-        "Sydney, New South Wales, Australia",
-        "AU - Sydney",
-        "AU: Sydney (45 Clarence St)",
-        "Melbourne, au",
-        "Melbourne",  # some boards report a bare city, no country token
-        "Remote - AUS",
+        "Riverton, Northshire, Eastland",
+        "EL - Riverton",
+        "EL: Riverton (45 Market St)",
+        "Lakeside, el",
+        "Lakeside",  # some boards report a bare city, no country token
+        "Remote - ELS",
         "",  # unknown location goes to triage, not the bin
     ):
         assert location_matches(loc, patterns), loc
-    for loc in ("Austin, Texas", "London, UK", "US Remote", "Auckland, NZ"):
+    # Near misses the word boundaries must reject: "Elsewhere" contains "els",
+    # "Riverside" is not "Riverton", and an unlisted country is out.
+    for loc in ("Elsewhere, Texas", "London, UK", "US Remote", "Riverside, NZ"):
         assert not location_matches(loc, patterns), loc
     # No filter configured -> keep everything.
     assert location_matches("London, UK", [])

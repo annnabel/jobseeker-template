@@ -64,16 +64,20 @@ reason to discourage them.
 
 ## Step 6 — review it together, right now
 
-Walk the draft exactly as `/review` would: show `resume.md` and `cover.md`,
-answer the `[GAP]`s (write answers back to `profile/evidence-bank.md`), state
-the `[SHORTFALL]`s plainly, apply the human's edits, re-validate everything you
-touched. This session **is** the review; no separate Gate 2 session needed.
+Walk the draft exactly as `/review` would: show `resume.md`, `cover.md`, and
+the ATS scorecard the tailor produced with `bin/ats_score.py` (required tier
+first, every miss with its verdict), answer the `[GAP]`s (write answers back to
+`profile/evidence-bank.md`), state the `[SHORTFALL]`s plainly, apply the
+human's edits, re-validate everything you touched — and re-run `ats_score.py`
+if an answer let you honestly cover a miss, quoting the new number. This
+session **is** the review; no separate Gate 2 session needed.
 
 ## Step 7 — record
 
 Update the posting's `status: drafted` and the README table. Commit the branch,
 push, open a **draft PR** titled `Add · <company> · <role>` — one block in the
-body: company, title, fit read, angle, coverage, [GAP]s answered, [SHORTFALL]s.
+body: company, title, fit read, angle chosen and why, ATS scorecard (required /
+preferred / overall), [GAP]s answered, [SHORTFALL]s.
 The PR is the record and the merge vehicle, not a review queue: the human
 already reviewed live.
 

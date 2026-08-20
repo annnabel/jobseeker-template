@@ -10,7 +10,8 @@ scope:      who/how many · how often · what was at stake — what sizes the wi
 tags:       comma, separated, lowercase — whatever your field calls its
             capabilities: tools, systems, procedures, languages, curricula,
             licences, methods, domains
-angles:     which angle(s) this supports, comma separated
+angles:     which angle(s) this supports, comma separated — each must be
+            declared in the bank's `## Angles` block (templates/angle-entry.md)
 narrative: >
   Two to four sentences. What was broken, what you did, what happened. This is
   the STAR story, written once here — not regenerated per JD. The tailor quotes

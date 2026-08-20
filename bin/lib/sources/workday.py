@@ -13,7 +13,7 @@ The list endpoint carries no description and reports multi-location roles as
 "N Locations" instead of place names, so this adapter:
   1. pages the list (POST, 20/page) up to MAX_PAGES,
   2. keeps postings whose `locationsText` matches the location filter — a
-     precise single-location string like "Sydney, Australia". Multi-location
+     precise single-location string like "<City>, <Country>". Multi-location
      "N Locations" rows carry no place name and are skipped: the one coverage
      gap, and it is logged when it bites,
   3. fetches each kept posting's detail for the real location, description,
@@ -72,18 +72,19 @@ def _collect_location_facets(
 def _discover_location_facets(
     base: str, location_filter: list[str] | None
 ) -> dict[str, list[str]]:
-    """Find the applied-facet payload that scopes a board to AU server-side.
+    """Find the applied-facet payload that scopes a board to your region server-side.
 
-    Globally-sorted boards (Accenture ~2k, PwC ~4.4k) bury AU roles below the
-    scan window, so a blind page-and-filter misses them. Instead, read the
-    board's own location facets and apply the ones whose descriptor matches the
-    location filter — the board then returns only AU roles and every one is in
-    the window. Returns {} when the board exposes no matching facet (small
-    AU-centric boards, or PwC-style boards with no country facet), and the
-    caller falls back to the plain paged scan. Applies exactly ONE facet
-    parameter: Workday ANDs across different parameters, so mixing a country
-    facet with a city facet would intersect to just that city. Prefer a
-    country-level parameter (broadest); else the one with the most matches.
+    Globally-sorted boards (the giants list 2k–5k roles) bury in-region roles
+    below the scan window, so a blind page-and-filter misses them. Instead,
+    read the board's own location facets and apply the ones whose descriptor
+    matches the location filter — the board then returns only in-region roles
+    and every one is in the window. Returns {} when the board exposes no
+    matching facet (a board that is already single-region, or one with no
+    country facet at all), and the caller falls back to the plain paged scan.
+    Applies exactly ONE facet parameter: Workday ANDs across different
+    parameters, so mixing a country facet with a city facet would intersect to
+    just that city. Prefer a country-level parameter (broadest); else the one
+    with the most matches.
     """
     if not location_filter:
         return {}
@@ -109,8 +110,8 @@ def _parse_slug(slug: str) -> tuple[str, str, str]:
     parts = [p for p in slug.split("/") if p]
     if len(parts) != 3:
         raise ValueError(
-            f"workday slug must be 'tenant/dc/site' (e.g. commbank/wd3/"
-            f"CommBankCareers), got {slug!r}"
+            f"workday slug must be 'tenant/dc/site', read off the board's URL "
+            f"https://<tenant>.<dc>.myworkdayjobs.com/<site> — got {slug!r}"
         )
     return parts[0], parts[1], parts[2]
 
@@ -124,24 +125,25 @@ def fetch(slug: str, location_filter: list[str] | None = None) -> list[Posting]:
     # Workday's edge hands back persists across the board's requests instead of
     # being thrown away on each call (PRD §4.1; sources/_http.py).
     with session():
-        # 0. Try to scope the board to AU server-side via its location facets.
-        #    Unlocks globally-sorted giants (Accenture, ...) whose AU roles sit
-        #    below the scan window; empty for AU-centric boards, which then fall
-        #    back to the plain paged scan below.
+        # 0. Try to scope the board server-side via its location facets.
+        #    Unlocks globally-sorted giants whose in-region roles sit below the
+        #    scan window; empty for boards that are already single-region, which
+        #    then fall back to the plain paged scan below.
         applied = _discover_location_facets(base, location_filter)
         if location_filter:
             time.sleep(PACE_SECONDS)  # pace the discovery call against paging
         if applied:
             print(
-                f"  workday/{slug}: scoping to AU via facet {applied}", file=sys.stderr
+                f"  workday/{slug}: scoping to your locations via facet {applied}",
+                file=sys.stderr,
             )
 
         # 1. Page the list endpoint.
-        #    Some tenants (CommBank, Telstra, DXC, ...) report the real `total`
-        #    only on the first page and 0 on every page after it. Trusting each
-        #    page's `total` therefore breaks after page 2 and loses most of the
-        #    board. Latch the largest total ever seen so paging runs until the
-        #    postings actually run out (empty page) or MAX_PAGES.
+        #    Some tenants report the real `total` only on the first page and
+        #    0 on every page after it. Trusting each page's `total` therefore
+        #    breaks after page 2 and loses most of the board. Latch the largest
+        #    total ever seen so paging runs until the postings actually run out
+        #    (empty page) or MAX_PAGES.
         listings: list[dict] = []
         offset = 0
         total = 0

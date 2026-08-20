@@ -17,8 +17,8 @@ whose walkthrough was deferred.
 
 ## For each directory in `queue/ready/`
 
-1. Show the draft: the tailored `resume.md`, the `cover.md`, the coverage
-   summary, and the JD keywords used. (Drafts created interactively via `/add`
+1. Show the draft: the tailored `resume.md`, the `cover.md`, the ATS scorecard
+   (required tier first, every miss with its verdict), and the angle it argues. (Drafts created interactively via `/add`
    were already reviewed live in that session — skip them unless the human
    wants another pass.)
 
@@ -43,6 +43,11 @@ whose walkthrough was deferred.
    (add `--note profile/companies/<slug>.md` if the note exists — its numerals
    are allowed in the hook). Both must pass. The linter runs again here, not
    just in the sweep.
+
+   Then, if an answer let you honestly cover a keyword the draft was missing,
+   re-run the scorecard so the number you report is this draft's and not the
+   tailor's:
+   `python3 bin/ats_score.py --jd jd.md --variant <variant.yaml> --cover cover.md`
 
 ## Then hand back to the human
 The human **submits by hand, in their own browser.** You never submit, never
