@@ -40,7 +40,10 @@ derived, not a decision).
    anything with a `next_action` — a `send a follow-up` row (applied, silent
    past `tracker.followup_days`) is a top-three action: a short, polite
    check-in the human sends themselves, in their own words — plus anything
-   freshly `ghosted` and any positive status the human may want to act on.
+   freshly `ghosted` and any positive status the human may want to act on —
+   a `reply`, `screen`, or `onsite` with an interview ahead and no `prep.md`
+   in its directory is a `/prep` action, and an upcoming interview outranks
+   everything else in this list.
    When the human asks how the search is going (or ~10+ applications have
    accumulated), run `python3 bin/tracker.py --stats` and relay the response
    and callback rates, including the by-track / by-angle breakdown. Report the

@@ -156,6 +156,11 @@ Five commands, in order — this is the whole system:
    you hear back (or don't), one more `/log` line records it. Silence
    eventually auto-marks the role "ghosted" with no effort from you.
 
+And when a reply turns into an interview, run **`/prep`** — it builds likely
+questions, practice stories drawn from your own history, and plain-spoken
+answers for anything the role wants that you don't have. It preps you to
+back up exactly what your application said, never to claim more.
+
 ### With the automatic sweep turned on (optional)
 
 Say yes when `/setup` offers it (or re-run `/setup` later), and each weekday
@@ -177,6 +182,7 @@ walks you through the two copy-paste guides (`docs/ENVIRONMENT.md` and
 | `/choose` | Pick which queued roles are worth tailoring |
 | `/tailor` | Write the resume + cover letter for the roles you kept |
 | `/log` | Record "I applied" or any status change, in about two minutes |
+| `/prep` | When you land an interview: likely questions, practice stories from your own history, and honest answers for the gaps |
 | `/next` | "What should I do now?" — reads the state of play, gives you one next step |
 | `/review` | Re-open a draft you deferred and finish reviewing it |
 | `/sweep` | (Optional) the nightly search itself — run by the schedule, not by you |

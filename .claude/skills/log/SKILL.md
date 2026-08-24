@@ -28,6 +28,10 @@ A positive event happened. Set `status:` in the role's `meta.yaml` to one of:
 Only positive events need logging. Forgetting degrades to `ghosted`, which is
 almost always just true.
 
+On `reply`, `screen`, or `onsite`, mention once that `/prep` (a fresh
+session) builds interview prep for this role from the evidence bank and what
+the submitted draft actually claimed.
+
 ## Always, after any change
 ```
 python3 bin/tracker.py            # applied/ + queue/ready/ -> tracker.csv

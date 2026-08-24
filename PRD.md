@@ -1000,3 +1000,50 @@ weakens the unattended sweep — the sweep's procedure lives where it always
 was authoritative, in `.claude/skills/sweep/SKILL.md`. The tracker's CSV
 columns are unchanged, so Phase 7's delete-and-regenerate test and the
 template-clean guard hold as written.
+
+## 24. Amendments (v3.11 — 2026-08-24, `/prep`: the deferred fifth skill)
+
+§2 deferred interview prep as "a natural fifth skill — but not part of the
+sweep", and §15.6 let a human ask for it inside `/tailor` or `/review`. Both
+halves of that judgment stand; what changes is that the loop now has a home:
+**`/prep`**, an interactive skill triggered by the event `/log` records
+(`reply`, `screen`, `onsite`) — the event that happens to <10% of
+applications, which is exactly why it earns a skill only when it fires and
+runs in no unattended path, ever.
+
+**The governing rule.** An interview is where a stretched claim stops being
+Gate 2's problem and becomes the candidate's, live. So `/prep` prepares the
+candidate to defend **what the submitted draft actually said** — the variant
+and cover are the script the interviewer read — and only bridges downward
+from claims to proof, never upward from proof to new claims.
+
+Mechanics, all existing machinery reused:
+
+1. **Grounding.** Likely questions derive from the JD and the submitted
+   draft's own claims; STAR stories build from the `narrative` fields of the
+   `ev:` entries the variant cites, angle `proof` entries first. The
+   `confidence` rules govern the *spoken* number exactly as the printed one:
+   `measured` may be stated as fact, `estimated` only directionally,
+   `qualitative` with no numeral. A thin narrative is a `[GAP]`: asked now,
+   answered by the human, written back to the bank (the §8.5 loop, enrich
+   never delete).
+2. **Shortfalls, said plainly.** Every `[SHORTFALL]` the role touches —
+   including a pivot track's `known_gaps` — gets a direct acknowledgment
+   plus the adjacent real evidence worth volunteering, never a script for
+   talking around it.
+3. **Company research flows through the note** (§16 unchanged): findings
+   land in `profile/companies/<slug>.md` with one source URL per fact before
+   use; red lines 4 and 6 hold. "Questions to ask them" draw from the JD and
+   the note only.
+4. **The deliverable is `prep.md`** in the role's directory, committed to
+   `main` — rereadable on a phone outside the interview room (principle
+   3.1). Evidence IDs appear in it (internal, like the variant); the
+   walkthrough happens live in the session.
+5. **Surfacing.** `/log` mentions `/prep` once on a `reply`/`screen`/
+   `onsite`; the tracker's `next_action` for those statuses names it; `/next`
+   ranks an upcoming interview with no `prep.md` above everything else.
+
+**What does not change.** Every red line holds. Nothing runs unattended;
+nothing contacts an employer or schedules anything; `goals.yaml`,
+`resume.yaml`, and `config.yaml` stay the human's. §2's other non-goals
+(negotiation, networking CRM, web UI) remain non-goals.
