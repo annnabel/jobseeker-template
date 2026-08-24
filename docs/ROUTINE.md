@@ -1,5 +1,8 @@
 # The routine (paste-in) — PRD §9, §18
 
+**Only needed for the optional nightly sweep.** If you haven't switched the
+sweep on (`/setup` asks; PRD §22), skip this file entirely.
+
 Create at **claude.ai/code/routines → New Routine**. Attach your private
 `my-jobseeker` repo and the environment you configured in `docs/ENVIRONMENT.md`.
 

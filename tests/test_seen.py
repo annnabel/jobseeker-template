@@ -161,6 +161,22 @@ def test_audit_ignores_manual_finds(tmp_path):
     assert r.returncode == 0, r.stdout + r.stderr
 
 
+def test_audit_ignores_manual_finds_with_structured_triage(tmp_path):
+    # /add queues manual finds to queue/shortlist with a real triage block
+    # (the fit read). `source: manual` alone must exempt them — a structured
+    # triage dict is not evidence of a sweep.
+    d = tmp_path / "queue" / "shortlist" / "pasted-role"
+    d.mkdir(parents=True)
+    (d / "meta.yaml").write_text(
+        "company: Torrens\ntitle: Senior Director\nstatus: shortlisted\n"
+        "source: manual\nadded: 2026-08-24\n"
+        "triage:\n  score: 7\n  reason: solid track match\n  red_flags: []\n",
+        encoding="utf-8",
+    )
+    r = run("seen.py", "audit", "--root", str(tmp_path))
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
 # ── audit: stored fingerprint beats recomputed meta text ───────────────────
 
 

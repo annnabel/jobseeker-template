@@ -203,9 +203,9 @@ def cmd_mark(args: argparse.Namespace) -> int:
 def _swept_meta_dirs(root: str):
     """Yield (dir, meta) for queue entries that came from a sweep.
 
-    A meta.yaml counts as swept when it has a `swept:` date or a structured
-    triage score. Manual finds (/add) have neither and are exempt — they were
-    never fetched, so seen-state doesn't apply to them.
+    Manual finds (/add writes `source: manual`) are exempt — they were never
+    fetched, so seen-state doesn't apply to them. Of the rest, a meta.yaml
+    counts as swept when it has a `swept:` date or a structured triage score.
     """
     for base in QUEUE_DIRS:
         for meta_path in sorted(_glob.glob(os.path.join(root, base, "*", "meta.yaml"))):
@@ -215,6 +215,8 @@ def _swept_meta_dirs(root: str):
             except yaml.YAMLError:
                 continue
             if not isinstance(meta, dict):
+                continue
+            if str(meta.get("source", "")).startswith("manual"):
                 continue
             if meta.get("swept") or isinstance(meta.get("triage"), dict):
                 yield os.path.dirname(meta_path), meta

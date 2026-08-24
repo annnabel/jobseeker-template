@@ -16,10 +16,8 @@ The human submitted in their own browser. Promote the queued draft:
 - `git mv queue/ready/<slug>/ applied/<date>_<slug>/`
 - In `applied/<date>_<slug>/meta.yaml` set:
   `status: applied` and `applied: <today>` (and `date:` if unset).
-- Regenerate and commit (below). Sweep-path roles live on `main`, so the
-  commit is the record — push it. A role from an `/add` branch still has its
-  PR: the human **merges it** themselves — the merge means "I applied"
-  (PRD §6, §18).
+- Regenerate and commit (below). Everything lives on `main`, so the commit is
+  the record — push it (PRD §6, §18).
 
 ### 2. "<role> → <event>"
 A positive event happened. Set `status:` in the role's `meta.yaml` to one of:

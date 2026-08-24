@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Onboard a new user. Interviews them in small batches to build the evidence bank (the master resume), then their voice, constraints, and targets. This is the whole onboarding — no code editing, no terminal, no PRD reading.
+description: Onboard a new user. Interviews them in small batches to build the evidence bank (the master resume), then their voice and constraints, and offers the optional nightly sweep. This is the whole onboarding — no code editing, no terminal, no PRD reading.
 ---
 
 # /setup — the whole onboarding (PRD §11 Phase 2, §12)
@@ -145,30 +145,67 @@ first-person cover voice. This is the tailor's TONE parameter, written once.
 ### 5. `profile/config.yaml` — behaviour
 Copy `templates/config.example.yaml`. Interview for `constraints` (comp floor
 in their own currency, remote, locations as their boards print them,
-dealbreakers in their own words), `scoring.threshold`, `scoring.queue_cap`,
-`cover.max_words`, `tracker.ghost_days`. The template defaults for
-`scoring.near_miss_band` / `scoring.near_miss_cap` (the tier that surfaces the
-closest below-threshold roles at Gate 1 so a thin night isn't silent) are
-sensible as-is — mention they exist and can be tuned, but don't belabour them;
-set `near_miss_band: 0` if the user wants triage to be a hard cut.
+dealbreakers in their own words), `cover.max_words`, `tracker.ghost_days`.
+The `scoring.*` keys (`threshold`, `queue_cap`, `near_miss_band`,
+`near_miss_cap`) only matter if the optional sweep is on — leave the template
+defaults alone unless the user says yes in step 6, and interview for them
+there.
 
-### 6. `profile/targets.yaml` — companies (Phase 4)
-Copy `templates/targets.example.yaml`. For each company the user names, find its
-ATS + board slug (ask them to paste the careers-page URL). For the top ~20, have
-them write `profile/companies/<slug>.md` — three honest lines on why they'd go
-(PRD §4.3). If they can't write three honest lines, the company doesn't belong.
+### 6. The nightly sweep — optional, off unless they ask for it (PRD §22)
 
-Ask for companies that hire for **each** track, not just the first one. A
-pivot track with no employers behind it produces a permanently empty section of
-every shortlist. And warn them plainly if their field is unlikely to be on the
-supported ATSes at all (public sector, healthcare systems, education,
-small local employers often are not): that is not a failure, it means their
-system is `/add`-driven and the sweep is a bonus. Set expectations now rather
-than letting three silent mornings do it.
+The system is complete without this: the everyday workflow is `/add` →
+`/choose` → `/tailor` → `/log`, and nothing below is needed for it. The sweep
+is an add-on — it watches chosen companies' public job boards overnight and
+queues a shortlist — and it costs some one-time configuration outside the
+chat, so **ask, plainly, and take no for an answer**:
 
-Two ways to check a company before committing to it, both cheap:
-`python3 bin/fetch.py --dry-run` after adding it, or just paste the careers URL
-and read the slug off it.
+*"One optional extra: I can check chosen companies' job boards every night
+and queue anything promising for your morning. It needs about ten minutes of
+one-time settings work, and it only covers companies on the ten big job-board
+systems. Want it? You can switch it on later at any time — just re-run
+/setup or ask."*
+
+**No** → skip the rest of this step entirely. Don't create `targets.yaml`;
+an absent or empty targets file is exactly how the rest of the system knows
+the sweep is off (`/next` treats paste-driven as normal, never as a gap).
+Move on to step 7.
+
+**Yes** → three things, in order:
+
+1. **`profile/targets.yaml`** — copy `templates/targets.example.yaml`. For
+   each company the user names, find its ATS + board slug (ask them to paste
+   the careers-page URL). For the top ~20, have them write
+   `profile/companies/<slug>.md` — three honest lines on why they'd go
+   (PRD §4.3). If they can't write three honest lines, the company doesn't
+   belong.
+
+   Ask for companies that hire for **each** track, not just the first one. A
+   pivot track with no employers behind it produces a permanently empty
+   section of every shortlist. And warn them plainly if their field is
+   unlikely to be on the supported ATSes at all (public sector, healthcare
+   systems, education, small local employers often are not): that is not a
+   failure, it means their system stays `/add`-driven and the sweep is a
+   bonus. Set expectations now rather than letting three silent mornings do
+   it.
+
+   Two ways to check a company before committing to it, both cheap:
+   `python3 bin/fetch.py --dry-run` after adding it, or just paste the
+   careers URL and read the slug off it.
+
+2. **Scoring** — now interview for `scoring.threshold` and
+   `scoring.queue_cap` in `config.yaml`. The template defaults for
+   `scoring.near_miss_band` / `scoring.near_miss_cap` (the tier that surfaces
+   the closest below-threshold roles at Gate 1 so a thin night isn't silent)
+   are sensible as-is — mention they exist and can be tuned, but don't
+   belabour them; set `near_miss_band: 0` if the user wants triage to be a
+   hard cut.
+
+3. **The settings work** — walk them through the two paste-in guides, one at
+   a time, waiting while they click: `docs/ENVIRONMENT.md` (the allowed
+   websites and the 4-line setup script) and `docs/ROUTINE.md` (the schedule
+   and the prompt it runs). Both are copy-paste; neither needs a terminal.
+   Tell them the first sweep should be run manually on a day they're not
+   busy — it triages the whole backlog at once.
 
 ### 7. `profile/connections.csv` (optional)
 LinkedIn → Settings → Data Privacy → Get a copy of your data → Connections.
@@ -184,5 +221,7 @@ from their evidence than the `transferable` line claimed (go back and make that
 line honest). Both are better found now than in a draft. Every later phase is
 capped by these two files.
 
-Close by telling them the one next thing: `/add` a real posting they've been
-sitting on, and see the whole loop run once.
+Close by naming the everyday loop once — **`/add` a posting → `/choose` the
+keeps → `/tailor` the drafts → apply by hand → `/log` it** — and the one next
+thing: `/add` a real posting they've been sitting on, and see that loop run
+once.

@@ -1,19 +1,24 @@
 # Jobseeker — Product Requirements Document (v3)
 
-A personal job-search pipeline. It sources roles from public ATS APIs, triages
-them cheaply, tailors resumes and cover letters with provenance-checked claims,
-and opens a PR a human reviews before applying **by hand**. It never
-auto-submits, never scrapes, and never invents.
+A personal job-search pipeline. The human pastes in roles they found (or an
+optional nightly sweep fetches them from public ATS APIs), triage reads the
+fit cheaply, and the roles the human picks get resumes and cover letters
+tailored with provenance-checked claims before the human applies **by hand**.
+It never auto-submits, never scrapes, and never invents.
 
 **How to read this.** §1–§13 are the original v3 design and are kept as
 written. §14 onward amend them, in order, and a later amendment always wins:
-the flow that actually runs today is §18 (the sweep lands its shortlist on
-`main`; `/choose` is Gate 1; `/tailor` develops the keeps) plus §19 (roles are
-scored against `profile/goals.yaml` — where you want to go — not against your
-last job title), §20 (nothing in the template describes a particular career,
-industry, or country) and §21 (keyword coverage is computed, not estimated;
-what an *angle* is). Where §4's diagram or §6 still show a sweep branch and a
-morning PR, read §18.
+the flow that actually runs today is §22 (the key workflow is `/setup` →
+`/add` → `/choose` → `/tailor` → `/log`, one queue on `main` for pasted and
+swept roles alike, and the sweep itself is opt-in, offered once at `/setup`)
+over §18 (the sweep lands its shortlist on `main`; `/choose` is Gate 1;
+`/tailor` develops the keeps), plus §19 (roles are scored against
+`profile/goals.yaml` — where you want to go — not against your last job
+title), §20 (nothing in the template describes a particular career, industry,
+or country) and §21 (keyword coverage is computed, not estimated; what an
+*angle* is). Where §4's diagram or §6 still show a sweep branch and a morning
+PR, read §18; where §14.2 still shows `/add` tailoring in its own session on
+a branch, read §22.
 
 Every example value in this repo — in the templates, the prompts, the
 docstrings, the tests — is a placeholder. The system carries no default field,
@@ -871,3 +876,69 @@ angle licenses a claim: coverage is raised from evidence that already exists,
 and an angle is made credible by its proof entries. No gate moves, and nothing
 here runs in the unattended sweep — both belong to the interactive tailoring
 path (§15, §18).
+
+## 22. Amendments (v3.9 — 2026-08-24, manual-first: one queue, the sweep opt-in)
+
+This template is written for non-technical users, and the shape of the system
+should match the way most of them actually use it: they find jobs themselves
+and paste them in. Two structural changes follow.
+
+### 22.1 `/add` feeds the queue; the gates stop depending on where a role came from
+
+§14.2 made `/add` a self-contained pipeline: save to
+`profile/manual-postings/`, fit-read, and — if the human said pursue — tailor
+and review in the same session, on a branch, with a draft PR as the record.
+That gave the product two parallel paths (manual: branch + PR + collapsed
+gates; swept: `main` + `/choose` + `/tailor`) doing the same job with
+different mechanics, and the manual path — the common one — was the more
+complicated of the two.
+
+**Now there is one path.** The key workflow is
+**`/setup` → `/add` → `/choose` → `/tailor` → `/log`**, and every role goes
+through it:
+
+- **`/add` is intake only.** It saves the JD and an honest triage fit read to
+  `queue/shortlist/<slug>/` on `main` — the same shape the sweep writes, with
+  `source: manual` and no `fingerprint:`/`swept:` (manual finds were never
+  fetched, so seen-state doesn't apply; `seen.py audit` exempts them by that
+  `source:` key). No branch, no PR, no tailoring. `profile/manual-postings/`
+  is retired; the queue is the one holding area.
+- **`/choose` is Gate 1 for everything queued.** It presents the human's own
+  finds in their own labelled group (the threshold never applied to them),
+  then the sweep's survivors and near misses as before. A role can be kept,
+  discarded, or — named explicitly — held for next time. A one-role pick can
+  happen inline at the end of `/add` ("keep this one?"), recorded exactly as
+  `/choose` records it; what never happens is tailoring an unpicked role.
+- **`/tailor` and `/log` are unchanged in role**: develop the keeps, record
+  the outcomes. Everything lives on `main`; §14.2's branch-and-merge record
+  for manual finds is gone, and with it the last reason a jobseeker instance
+  ever needed a PR.
+
+§14.2's other rules survive intact: paste-only for off-allowlist sources, the
+threshold never auto-kills a manual find, never submit.
+
+### 22.2 The sweep is opt-in, offered once at `/setup`
+
+The sweep was designed as the default motion (§4, §9) with §14.5's "dormant
+until `targets.yaml` has companies" as the fallback. Inverted now: **the
+sweep is an optional add-on, off until the human says yes** — `/setup` offers
+it in one plain question at the end of onboarding (after goals, bank, resume,
+voice, and constraints), and takes no for an answer.
+
+- **No** (the default): `targets.yaml` is not created; the `scoring.*` keys
+  keep their template defaults; `docs/ENVIRONMENT.md` and `docs/ROUTINE.md`
+  are never mentioned. An absent or empty `targets.yaml` *is* the off state —
+  no new config flag — and `/next` treats a paste-driven system as normal,
+  never as a gap to nag about.
+- **Yes**: `/setup` interviews for `targets.yaml` (and only then for
+  `scoring.threshold` / `queue_cap`), then walks the human through the two
+  paste-in guides. Everything in §4, §6, §7, §9, §15, §17 and §18 about how
+  the sweep runs is unchanged — it lands its shortlist in the same queue and
+  its roles go through the same `/choose` and `/tailor` as a pasted one.
+
+**What does not change.** Every red line holds, and Gate 1 is untouched — it
+moves no closer to the machine by being fed from two sources. Seen-state
+semantics are unchanged for swept roles; manual finds stay outside seen-state
+exactly as §14.2 always had them (discarding one merely clears the queue — the
+human can `/add` it again). The tracker still derives from `queue/ready/` and
+`applied/` only.

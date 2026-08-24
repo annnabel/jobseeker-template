@@ -1,5 +1,9 @@
 # Environment setup (paste-in) — PRD §7
 
+**Only needed for the optional nightly sweep.** If you haven't switched the
+sweep on (`/setup` asks; PRD §22), skip this file entirely — `/add`, `/choose`,
+`/tailor`, and `/log` need none of it.
+
 Configured once, in the web UI, at the environment selector (the cloud icon).
 No CLI required.
 

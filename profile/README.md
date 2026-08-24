@@ -11,9 +11,8 @@ knows about you:
 | `resume.yaml` | The canonical facts: every employer, title, and date, exactly once | `/setup` |
 | `voice.md` | A short description of how you write, so drafts sound like you | `/setup` |
 | `config.yaml` | Your preferences: salary floor, locations, dealbreakers, scoring threshold | `/setup` (from `templates/config.example.yaml`) |
-| `targets.yaml` | The companies whose job boards the automated sweep watches | `/setup` (from `templates/targets.example.yaml`) |
-| `companies/<name>.md` | Three honest lines about why you'd join each company you care about | you, with help from `/setup` |
-| `manual-postings/` | Job ads you found yourself and pasted in with `/add` | `/add` |
+| `targets.yaml` | (Only if you switch on the optional nightly sweep) the companies whose job boards it watches | `/setup` (from `templates/targets.example.yaml`) |
+| `companies/<name>.md` | Three honest lines about why you'd join each company you care about | you, with help from `/setup` and `/tailor` |
 | `connections.csv` | (Optional) your LinkedIn connections export, for spotting referral paths | you |
 
 Never edit these by hand unless you want to — every skill knows how to

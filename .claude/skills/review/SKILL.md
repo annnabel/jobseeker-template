@@ -1,14 +1,13 @@
 ---
 name: review
-description: Gate 2. Run interactively in a session on main (or an /add branch). Walk each queued role's draft with the human, answer the [GAP]s (writing answers back to the evidence bank), and act on kill instructions. Never submits.
+description: Gate 2. Run interactively in a session on main. Walk each queued role's draft with the human, answer the [GAP]s (writing answers back to the evidence bank), and act on kill instructions. Never submits.
 ---
 
 # /review — Gate 2, interactive (PRD §4, §8)
 
-Run this in a session on `main` (`git pull origin main` first), or on an
-`add/*` branch for a manual find. Gate 1 was the human picking keeps in
-`/choose`. Gate 2 is you and the human walking the actual drafts together:
-is this right?
+Run this in a session on `main` (`git pull origin main` first). Gate 1 was
+the human picking keeps in `/choose`. Gate 2 is you and the human walking the
+actual drafts together: is this right?
 
 If `queue/shortlist/` still has entries, those roles have been found but not
 developed — that's `/tailor`'s job (PRD §15), and its live walkthrough usually
@@ -18,9 +17,9 @@ whose walkthrough was deferred.
 ## For each directory in `queue/ready/`
 
 1. Show the draft: the tailored `resume.md`, the `cover.md`, the ATS scorecard
-   (required tier first, every miss with its verdict), and the angle it argues. (Drafts created interactively via `/add`
-   were already reviewed live in that session — skip them unless the human
-   wants another pass.)
+   (required tier first, every miss with its verdict), and the angle it
+   argues. (Drafts whose walkthrough already happened live in `/tailor` —
+   skip them unless the human wants another pass.)
 
 2. **Answer the [GAP]s.** Each [GAP] is a specific, answerable question about
    the candidate's own history ("was the Acme migration 6 or 8 months?"). Ask

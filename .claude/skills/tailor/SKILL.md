@@ -3,20 +3,22 @@ name: tailor
 description: Resume and cover development, on demand. Run in a fresh session on main after /choose. Develops every shortlisted role marked kept (or the roles the human names); only those get the expensive tailoring pass, reviewed live in the same session. Never submits.
 ---
 
-# /tailor — develop the keeps (PRD §15, §18)
+# /tailor — develop the keeps (PRD §15, §18, §22)
 
-The sweep ended at a shortlist on `main`, and `/choose` (Gate 1) recorded
-which roles are worth the spend. Only those roles get an Opus tailoring run.
-Because the human is sitting right here, the Gate 2 walkthrough happens live
-in this session, `/add`-style.
+The queue on `main` holds found roles — pasted in with `/add`, or landed by
+the optional sweep — and `/choose` (Gate 1) recorded which are worth the
+spend. Only those roles get an Opus tailoring run. Because the human is
+sitting right here, the Gate 2 walkthrough happens live in this session.
 
 Run this in a fresh session on `main`. Start with
 `git checkout main && git pull origin main` so `/choose`'s picks are present.
 
 ## Step 0 — check which environment you're in
 
-Company research (PRD §16) needs the open web, and the locked sweep
-environment only allows the five ATS hosts. Probe before spending anything:
+Company research (PRD §16) needs the open web. That's normally available —
+the exception is the locked allowlist environment of the optional sweep
+(docs/ENVIRONMENT.md), which only allows the ATS hosts. Probe before spending
+anything:
 
 ```
 curl -sI --max-time 5 https://example.com >/dev/null && echo open || echo locked
@@ -54,10 +56,12 @@ No keeps → nothing to develop; say so and stop after Step 2.
 ## Step 2 — discard the rest
 
 Delete `queue/shortlist/<slug>/` for every role not kept — `/choose` usually
-already did this, so there may be nothing to do. Discards are already in
-`state/seen/` (disposition `shortlisted`), so they can never come back. No new
-seen-state is written here — discarding a shortlist entry is not a new
-disposition (PRD §15.7).
+already did this, so there may be nothing to do — but leave any entry the
+human explicitly held at `/choose` alone. Swept discards are already in
+`state/seen/` (disposition `shortlisted`), so they can never come back;
+manual (`source: manual`) discards have no seen record and can simply be
+`/add`-ed again if the human changes their mind. No new seen-state is written
+here — discarding a shortlist entry is not a new disposition (PRD §15.7).
 
 ## Step 3 — tailor each keep
 
@@ -65,8 +69,9 @@ For each kept role, invoke the `tailor` subagent (opus) with the contents of
 `queue/shortlist/<slug>/jd.md` and `meta.yaml`. It writes
 `queue/ready/<slug>/` — `resume.yaml`, `resume.md` (via
 `python3 bin/render.py resume.yaml -o resume.md`), `cover.md`, `jd.md`,
-`meta.yaml` (carrying forward the triage block, `swept:`, and `fingerprint:`
-from the shortlist unchanged — `seen.py audit` needs them — and setting
+`meta.yaml` (carrying forward the shortlist meta unchanged — the triage
+block, and on swept entries `swept:` and `fingerprint:` (`seen.py audit`
+needs them), on manual entries `source: manual` and `added:` — and setting
 `status: queued`, which is what the tracker expects for a draft awaiting
 Gate 2) — and
 self-validates (`validate.py`, `validate.py --cover`, with `--note` where a
