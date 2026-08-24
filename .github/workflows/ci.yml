@@ -12,10 +12,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      # Dev tooling is pinned on purpose. An unpinned `pip install ruff`
+      # made every CI run install whatever ruff had shipped that day, so the
+      # lint step changed meaning without a commit. Bump these deliberately.
       - name: Install dependencies
-        run: pip install pyyaml httpx pydantic pytest ruff
+        run: pip install pyyaml httpx pydantic "pytest==9.1.1" "ruff==0.16.3"
       - name: Lint
-        run: ruff check bin/ tests/
+        run: ruff check --output-format=github bin/ tests/
       - name: Acceptance tests
         run: python3 -m pytest tests/ -q
 
