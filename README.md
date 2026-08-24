@@ -29,11 +29,13 @@ Think of it as a very careful assistant that:
   **change of direction**, you say so, name the experience that genuinely
   carries across, and name what you're missing; drafts then lead with the
   transferable work and state the gap plainly instead of writing around it.
-- **Finds roles for you.** Either you paste in a job ad you found anywhere
-  (`/add`), or an optional nightly sweep checks the public job boards of
-  companies you choose and leaves you a morning shortlist.
-- **Drafts for you.** For the roles you pick, it writes a tailored resume and
-  cover letter in plain markdown, easy to read on your phone.
+- **Keeps a queue of roles you're considering.** You paste in job ads you
+  found anywhere (`/add`); each gets an honest fit read and waits in the
+  queue. If you switch on the optional nightly sweep, it checks the public
+  job boards of companies you choose and adds to the same queue overnight.
+- **Drafts for you.** For the roles you pick (`/choose`), it writes a
+  tailored resume and cover letter in plain markdown, easy to read on your
+  phone.
 - **Writes for the screening software, then for the human.** Most applications
   are read by keyword-matching software first. A checker reads the job ad,
   works out which words that employer keeps repeating, and reports exactly
@@ -51,6 +53,9 @@ Think of it as a very careful assistant that:
   application and its status. It updates itself; you never edit it.
 
 ## Which job boards the sweep can reach
+
+*(Only relevant if you switch on the optional sweep — `/setup` asks. Pasting
+ads in with `/add` works for a job found anywhere, no list needed.)*
 
 The sweep only ever talks to the **official public job-listing APIs** that
 companies' own careers pages are built on — never LinkedIn, Indeed, or
@@ -111,74 +116,75 @@ simple commands like `/setup` and `/add` into a Claude Code chat.
    repo and make your fork private.)
 2. **Open it in Claude Code.** Go to [claude.ai/code](https://claude.ai/code)
    and connect your new private repository.
-3. **Configure the environment** (only needed for the automated sweep, but
-   quick): follow `docs/ENVIRONMENT.md` — it's a copy-paste of a short list of
-   allowed websites and a 4-line setup script into the environment settings.
-4. **Run `/setup`.** This is the big one. Claude asks first about **where you
+3. **Run `/setup`.** This is the big one. Claude asks first about **where you
    want to go** (your career tracks — 20 minutes), then interviews you about
    your career a few questions at a time to build your "evidence bank": the
    master list of everything true about you that all future resumes draw from.
    Budget a relaxed hour or three; you can stop and pick it up later. Honest
    answers matter more than impressive ones — the system is designed so drafts
    can only use what's in the bank. Not every accomplishment needs a number,
-   and a shorter honest bank beats a padded one.
-5. **Try it.** Find a job ad anywhere, run `/add`, and paste the ad in.
-   You'll get an honest fit read, and if you say "go", a tailored draft to
-   review right there in the chat.
+   and a shorter honest bank beats a padded one. At the end it offers the
+   **optional nightly sweep** (see below) — saying no is the simplest start,
+   and you can switch it on later at any time.
+4. **Try it.** Find a job ad anywhere, run `/add`, and paste the ad in.
+   You'll get an honest fit read and the role joins your queue — then
+   `/choose` it, and `/tailor` drafts it for you to review in the chat.
 
 Lost at any point? Type **`/next`** — it looks at where things stand and
 tells you the one best thing to do now.
 
 ## The everyday workflow
 
-### When you find a job yourself (most common)
+Five commands, in order — this is the whole system:
 
-1. **`/add`** — paste the job ad. Claude reads it, scores the fit honestly
-   (including what the role wants that you don't have), and asks if you want
-   to pursue it.
-2. **Review together.** If yes, it drafts the resume and cover letter and
-   walks them with you line by line. It will ask you questions where it's
+1. **`/add`** — paste in a job ad you found anywhere. Claude reads it, scores
+   the fit honestly (including what the role wants that you don't have), and
+   queues it. Add as many as you like, whenever you like.
+2. **`/choose`** — when you're ready, skim the queue and pick the keepers.
+   "None of these" is a fine answer.
+3. **`/tailor`** — drafts the resume and cover letter for your picks only,
+   and walks them with you line by line. It asks you questions where it's
    unsure rather than guess; your answers are saved so it never asks twice.
-3. **Apply by hand.** Open the company's site in your browser and submit the
+4. **Apply by hand.** Open the company's site in your browser and submit the
    application yourself, using the approved drafts.
-4. **`/log`** — tell it "I applied". The tracker updates itself. Later, when
+5. **`/log`** — tell it "I applied". The tracker updates itself. Later, when
    you hear back (or don't), one more `/log` line records it. Silence
    eventually auto-marks the role "ghosted" with no effort from you.
 
 ### With the automatic sweep turned on (optional)
 
-1. **Add target companies** to `profile/targets.yaml` (the `/setup` interview
-   helps with this), then create the scheduled routine by copy-pasting the
-   prompt from `docs/ROUTINE.md`. Each weekday morning the sweep checks those
-   companies' job boards and leaves you a shortlist report.
-2. **`/choose`** — over coffee, skim the shortlist and pick the keepers.
-   "None of these" is a fine answer; rejected roles never come back.
-3. **`/tailor`** — drafts resumes and cover letters for your picks only, and
-   reviews them with you live, same as `/add`.
-4. **Apply by hand, then `/log`.** Same as always.
+Say yes when `/setup` offers it (or re-run `/setup` later), and each weekday
+morning the sweep checks your chosen companies' job boards and adds anything
+promising to the same queue, with a morning report. Your workflow doesn't
+change: `/choose` the keepers over coffee, `/tailor`, apply by hand, `/log`.
+Roles you discard never come back.
+
+Turning it on takes about ten minutes of one-time settings work — `/setup`
+walks you through the two copy-paste guides (`docs/ENVIRONMENT.md` and
+`docs/ROUTINE.md`) when you say yes.
 
 ## The commands
 
 | Command | What it does |
 |---|---|
-| `/setup` | One-time interview that builds your profile and evidence bank |
-| `/add` | Paste in a job ad you found; fit read + tailored draft in one sitting |
-| `/next` | "What should I do now?" — reads the state of play, gives you one next step |
-| `/choose` | Morning pick: which shortlisted roles are worth tailoring? |
+| `/setup` | One-time interview that builds your profile and evidence bank; offers the optional sweep at the end |
+| `/add` | Paste in a job ad you found; honest fit read, then it joins the queue |
+| `/choose` | Pick which queued roles are worth tailoring |
 | `/tailor` | Write the resume + cover letter for the roles you kept |
-| `/review` | Re-open a draft you deferred and finish reviewing it |
 | `/log` | Record "I applied" or any status change, in about two minutes |
-| `/sweep` | The nightly search itself (normally run by the schedule, not by you) |
+| `/next` | "What should I do now?" — reads the state of play, gives you one next step |
+| `/review` | Re-open a draft you deferred and finish reviewing it |
+| `/sweep` | (Optional) the nightly search itself — run by the schedule, not by you |
 
 ## What's in the folders
 
 ```
 profile/     Everything about you (starts empty; /setup fills it in)
-queue/       Roles in flight: the sweep's shortlist and your ready-to-send drafts
+queue/       Roles in flight: everything queued by /add or the sweep, and your ready-to-send drafts
 applied/     Roles you've applied to (created by /log)
 tracker.csv  The self-maintaining application tracker
 templates/   Blank starting points the system copies from
-docs/        The two copy-paste setup guides (environment + schedule)
+docs/        The two copy-paste guides for the optional sweep (environment + schedule)
 bin/         The scripts that fetch postings and fact-check drafts
 .claude/     The commands and rules Claude follows
 PRD.md       The full design document, if you're curious how it all works

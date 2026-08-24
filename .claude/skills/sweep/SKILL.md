@@ -1,9 +1,15 @@
 ---
 name: sweep
-description: The nightly routine entrypoint. Fetch ATS postings, triage them cheaply, and push a shortlist to main. No tailoring happens here — the human picks keeps later with /choose, then /tailor develops them. Runs unattended — no approval prompts. Never submits, never merges.
+description: The nightly routine entrypoint — the optional sweep /setup offers. Fetch ATS postings, triage them cheaply, and push a shortlist to main. No tailoring happens here — the human picks keeps later with /choose, then /tailor develops them. Runs unattended — no approval prompts. Never submits, never merges.
 ---
 
 # /sweep — the unattended job search (PRD §4, §9, §15, §18)
+
+The sweep is the **optional** half of intake (PRD §22): the human switched it
+on at `/setup` (or never did, in which case this skill has no business
+running — an absent or empty `profile/targets.yaml` means the system is
+`/add`-driven). Everything it queues goes through the same `/choose` and
+`/tailor` gates as a pasted-in role.
 
 You are running with **no human in the loop**. There is no one to ask. Be
 precise. The red lines in `CLAUDE.md` are load-bearing here above all.

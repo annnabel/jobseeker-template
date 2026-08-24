@@ -1,6 +1,6 @@
 ---
 name: next
-description: Answers "what should I do now?" Reads the repo state (queue, manual postings, tracker, targets, open branches) and gives one prioritized, concrete next action plus a short list of everything else pending. Changes nothing except regenerating the derived tracker.
+description: Answers "what should I do now?" Reads the repo state (queue, drafts, tracker, targets) and gives one prioritized, concrete next action plus a short list of everything else pending. Changes nothing except regenerating the derived tracker.
 ---
 
 # /next — where am I, what do I do (PRD §14)
@@ -27,26 +27,26 @@ derived, not a decision).
    this branch, if different). Each is a tailored role the human has not
    applied to yet. Sort by `closes:` date; a role closing soon is always the
    top action.
-2. **Shortlisted roles awaiting a pick or a tailor** — `queue/shortlist/*/
-   meta.yaml` on `main` (pull first). `status: shortlisted` (survivors) and
-   `status: near_miss` (below-threshold roles the sweep surfaced for the human
-   to judge) both mean nobody has picked yet: the action is `/choose` in a
-   fresh session (Gate 1). `status: kept` entries mean the pick happened but
-   `/tailor` hasn't run: the action is `/tailor`.
-3. **In-flight branches / open PRs** — `git branch -r` for `add/*`, and open
-   PRs. An `add/*` branch with drafts not yet walked through is a `/review`
-   action; drafts in `queue/ready/` not yet walked through are a `/review`
-   action.
-4. **Manual postings on hold** — `profile/manual-postings/*.md` with
-   `status: new` or `status: hold`. Each needs a decision: pursue via `/add`
-   flow, or pass.
-5. **The tracker** — run `python3 bin/tracker.py`, read `tracker.csv`. Surface
+2. **Queued roles awaiting a pick or a tailor** — `queue/shortlist/*/
+   meta.yaml` on `main` (pull first). `source: manual` entries (pasted in via
+   `/add`), `status: shortlisted` (sweep survivors), and `status: near_miss`
+   (below-threshold roles the sweep surfaced for the human to judge) all mean
+   nobody has picked yet: the action is `/choose` in a fresh session (Gate 1).
+   `status: kept` entries mean the pick happened but `/tailor` hasn't run:
+   the action is `/tailor`.
+3. **Drafts not yet walked through** — drafts in `queue/ready/` whose Gate 2
+   walkthrough was deferred are a `/review` action.
+4. **The tracker** — run `python3 bin/tracker.py`, read `tracker.csv`. Surface
    anything with a `next_action`, anything freshly `ghosted`, and any positive
    status the human may want to act on.
-6. **The sweep's fuel** — if `profile/targets.yaml` has no companies, say so:
-   the nightly sweep has nothing to watch, and the system is paste-driven
-   (`/add`) until careers-page URLs are added.
-7. **Track health** — compare the `track:` values across recent
+5. **The sweep, only if it's on** — the sweep is optional (`/setup` offers
+   it, PRD §22). If `profile/targets.yaml` is absent or has no companies, the
+   system is paste-driven (`/add`) by design — that is not a problem and
+   needs no nagging; mention the sweep exists only if the human asks what
+   else the system can do. If `targets.yaml` *does* have companies but
+   `queue/shortlist/` and `state/seen/` show no sweep has ever landed,
+   say so: the routine may not be set up (docs/ROUTINE.md).
+6. **Track health** — compare the `track:` values across recent
    `queue/shortlist/` and `applied/` entries against the tracks in
    `profile/goals.yaml`. A track that has produced nothing at all is worth one
    line: its `titles` may be too narrow, or no company in `targets.yaml` hires
@@ -65,5 +65,5 @@ Quiet: <one line on what needs nothing, e.g. "3 applied roles, none stale">
 ```
 
 If truly nothing is pending, say so and suggest the one thing that would make
-tomorrow better (usually: add a company to `targets.yaml`, or `/add` a posting
-they've been sitting on).
+tomorrow better (usually: `/add` a posting they've been sitting on; or, if the
+sweep is on, a company added to `targets.yaml`).

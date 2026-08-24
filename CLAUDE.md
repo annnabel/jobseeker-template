@@ -1,11 +1,14 @@
 # Jobseeker — operating rules
 
-This repo automates a personal job search: fetch postings from public ATS APIs,
-triage cheaply into a shortlist pushed to `main`, let the human pick the keeps
-(`/choose`, Gate 1), then tailor resumes and cover letters for those only
-(`/tailor` — never during the unattended sweep, PRD §15/§18), gate every claim
-for provenance, all before the human applies **by hand**. The full design is
-in `PRD.md`. Read it before changing behaviour.
+This repo assists a personal job search. The key workflow is **`/setup` →
+`/add` → `/choose` → `/tailor` → `/log`**: the human pastes in postings they
+found (`/add`), picks the keeps (`/choose`, Gate 1), and only those get
+tailored resumes and cover letters (`/tailor`), every claim gated for
+provenance, before the human applies **by hand**. An **optional** nightly
+sweep — offered at `/setup`, off unless the human says yes — fetches postings
+from public ATS APIs and triages them cheaply into the same queue on `main`;
+tailoring never happens during the unattended sweep (PRD §15/§18/§22). The
+full design is in `PRD.md`. Read it before changing behaviour.
 
 ## Red lines (PRD §10) — load-bearing, non-negotiable
 
@@ -39,7 +42,7 @@ These hold everywhere, but especially there:
    run and say so.
 10. **Never open a gate yourself.** Gate 1 is the human picking keeps in
     `/choose` — never pick, discard, or recommend on their behalf. And never
-    merge your own PR (`/add`'s, or any other): a gate you can open yourself
+    merge your own PR, should one ever exist: a gate you can open yourself
     isn't a gate.
 11. **Never delete from the evidence bank.** Mark `status: retired`.
 12. On a missing fact about the user: **`[GAP]` + a specific question.** Never a
