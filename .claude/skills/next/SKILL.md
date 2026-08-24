@@ -37,8 +37,17 @@ derived, not a decision).
 3. **Drafts not yet walked through** — drafts in `queue/ready/` whose Gate 2
    walkthrough was deferred are a `/review` action.
 4. **The tracker** — run `python3 bin/tracker.py`, read `tracker.csv`. Surface
-   anything with a `next_action`, anything freshly `ghosted`, and any positive
-   status the human may want to act on.
+   anything with a `next_action` — a `send a follow-up` row (applied, silent
+   past `tracker.followup_days`) is a top-three action: a short, polite
+   check-in the human sends themselves, in their own words — plus anything
+   freshly `ghosted` and any positive status the human may want to act on —
+   a `reply`, `screen`, or `onsite` with an interview ahead and no `prep.md`
+   in its directory is a `/prep` action, and an upcoming interview outranks
+   everything else in this list.
+   When the human asks how the search is going (or ~10+ applications have
+   accumulated), run `python3 bin/tracker.py --stats` and relay the response
+   and callback rates, including the by-track / by-angle breakdown. Report the
+   numbers; never suggest retuning `goals.yaml` or the bank yourself.
 5. **The sweep, only if it's on** — the sweep is optional (`/setup` offers
    it, PRD §22). If `profile/targets.yaml` is absent or has no companies, the
    system is paste-driven (`/add`) by design — that is not a problem and

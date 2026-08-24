@@ -34,7 +34,13 @@ import re
 import sys
 from collections import defaultdict
 
-import yaml
+# Make lib/ importable whether run from repo root or elsewhere.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_HERE, "lib"))
+
+import yaml  # noqa: E402
+
+from variant import flat_text  # noqa: E402
 
 # Section weights. A term in a requirements block matters more than the same
 # term in the company's boilerplate about its mission.
@@ -323,29 +329,11 @@ def term_pattern(term: str) -> re.Pattern:
     )
 
 
-def variant_text(variant: dict) -> str:
-    """Every human-readable string in the variant, flattened."""
-    parts: list[str] = []
-
-    def walk(node):
-        if isinstance(node, dict):
-            for v in node.values():
-                walk(v)
-        elif isinstance(node, list):
-            for v in node:
-                walk(v)
-        elif node is not None:
-            parts.append(str(node))
-
-    walk(variant)
-    return "\n".join(parts)
-
-
 def score(
     jd_text: str, variant: dict, cover_text: str | None, cfg: dict
 ) -> dict:
     keywords = extract_keywords(jd_text, cfg)
-    rtext = variant_text(variant)
+    rtext = flat_text(variant)
     ctext = cover_text or ""
 
     rows = []

@@ -24,12 +24,12 @@ the gap between adapter invocations, not requests made inside one.
 """
 from __future__ import annotations
 
-import re
 import sys
 import time
 
-from locations import location_matches
+from filters import location_matches
 from schema import Posting
+from sources import strip_html
 from sources._http import get_json, post_json, session
 
 BASE = "https://{tenant}.{dc}.myworkdayjobs.com/wday/cxs/{tenant}/{site}"
@@ -37,10 +37,6 @@ PAGE_SIZE = 20
 MAX_PAGES = 50            # cap listings scanned per board (50 * 20 = 1000)
 MAX_DETAIL = 80           # cap per-board detail calls (located postings only)
 PACE_SECONDS = 1.0        # self-pacing between this adapter's own requests
-
-
-def _strip_html(text: str) -> str:
-    return re.sub(r"<[^>]+>", " ", text or "").strip()
 
 
 def _collect_location_facets(
@@ -198,7 +194,7 @@ def fetch(slug: str, location_filter: list[str] | None = None) -> list[Posting]:
                     url=info.get("externalUrl", "") or (base + ep),
                     department="",
                     updated_at=info.get("startDate", "") or "",
-                    description=_strip_html(info.get("jobDescription", "")),
+                    description=strip_html(info.get("jobDescription", "")),
                 )
             )
     return out

@@ -942,3 +942,108 @@ semantics are unchanged for swept roles; manual finds stay outside seen-state
 exactly as §14.2 always had them (discarding one merely clears the queue — the
 human can `/add` it again). The tracker still derives from `queue/ready/` and
 `applied/` only.
+
+## 23. Amendments (v3.10 — 2026-08-24, closing the callback loop)
+
+A consolidation pass plus the two derived views the tracker always had the
+data for and never showed.
+
+### 23.1 Consolidation — no behaviour change
+
+Three fetch-layer scoping modules (`locations.py`, `roles.py`,
+`freshness.py`) shared one rule and, twice, one function; they are now
+`bin/lib/filters.py`, every function name unchanged. `bin/lib/variant.py`
+owns the flattened-text walk and the skills/technologies union that
+`validate.py`, `ats_score.py`, and `render.py` each carried privately — the
+three gates now read a draft the same way by construction. Six identical
+per-adapter `_strip_html` copies became `sources.strip_html`. No gate, red
+line, CLI flag, or output byte changed; the acceptance suite passes
+unmodified.
+
+### 23.2 The follow-up nudge
+
+An application silent past `config.tracker.followup_days` (default 7, `0`
+disables) gets `next_action: send a follow-up` in the derived tracker, and
+`/next` treats such a row as a top action. The nudge is to the **human**, who
+writes and sends the follow-up themselves, in their own words — nothing in
+the system contacts an employer, ever (red line 3 is not grazed; this is a
+reminder, not an integration). Same class of derivation as auto-ghost (§8.4):
+deterministic from `meta.yaml` plus today's date, G4's byte-identical
+regeneration intact.
+
+### 23.3 `tracker.py --stats` — computed callback rates
+
+The same `meta.yaml` files already record enough to answer "is this working?":
+`tracker.py --stats` prints the funnel (applications, any-response, callback,
+interview, offer) and callback rates broken down by goals.yaml `track`, by
+`source`, and by the `angle` each variant was positioned on. Writes nothing;
+computed, never estimated — the same boundary as §21's scorecard. The numbers
+close the loop the angle opened: which argument actually earns callbacks. What
+they never do is act: a track or angle that underperforms is *reported*
+(§19's rule), and retuning goals, angles, or the bank stays the human's,
+interactively (red line 7).
+
+### 23.4 The routine prompt carries invariants, not procedure
+
+`docs/ROUTINE.md`'s paste-in restated all seven `/sweep` steps, and had
+already accumulated three "re-paste after upgrading" warnings — the cost of
+maintaining one procedure in two places, one of which (the pasted routine at
+claude.ai) the repo cannot update. The prompt now says "run `/sweep`, the
+skill is authoritative" plus the invariants that never change (no tailoring,
+no picking, durable-before-seen, abort on total fetch failure, the red-line
+nevers, the per-run threshold rule), kept as defense in depth. Skill
+improvements now reach the unattended run on the next clone, with nothing to
+re-paste.
+
+**What does not change.** Every red line holds; no gate moves; nothing here
+weakens the unattended sweep — the sweep's procedure lives where it always
+was authoritative, in `.claude/skills/sweep/SKILL.md`. The tracker's CSV
+columns are unchanged, so Phase 7's delete-and-regenerate test and the
+template-clean guard hold as written.
+
+## 24. Amendments (v3.11 — 2026-08-24, `/prep`: the deferred fifth skill)
+
+§2 deferred interview prep as "a natural fifth skill — but not part of the
+sweep", and §15.6 let a human ask for it inside `/tailor` or `/review`. Both
+halves of that judgment stand; what changes is that the loop now has a home:
+**`/prep`**, an interactive skill triggered by the event `/log` records
+(`reply`, `screen`, `onsite`) — the event that happens to <10% of
+applications, which is exactly why it earns a skill only when it fires and
+runs in no unattended path, ever.
+
+**The governing rule.** An interview is where a stretched claim stops being
+Gate 2's problem and becomes the candidate's, live. So `/prep` prepares the
+candidate to defend **what the submitted draft actually said** — the variant
+and cover are the script the interviewer read — and only bridges downward
+from claims to proof, never upward from proof to new claims.
+
+Mechanics, all existing machinery reused:
+
+1. **Grounding.** Likely questions derive from the JD and the submitted
+   draft's own claims; STAR stories build from the `narrative` fields of the
+   `ev:` entries the variant cites, angle `proof` entries first. The
+   `confidence` rules govern the *spoken* number exactly as the printed one:
+   `measured` may be stated as fact, `estimated` only directionally,
+   `qualitative` with no numeral. A thin narrative is a `[GAP]`: asked now,
+   answered by the human, written back to the bank (the §8.5 loop, enrich
+   never delete).
+2. **Shortfalls, said plainly.** Every `[SHORTFALL]` the role touches —
+   including a pivot track's `known_gaps` — gets a direct acknowledgment
+   plus the adjacent real evidence worth volunteering, never a script for
+   talking around it.
+3. **Company research flows through the note** (§16 unchanged): findings
+   land in `profile/companies/<slug>.md` with one source URL per fact before
+   use; red lines 4 and 6 hold. "Questions to ask them" draw from the JD and
+   the note only.
+4. **The deliverable is `prep.md`** in the role's directory, committed to
+   `main` — rereadable on a phone outside the interview room (principle
+   3.1). Evidence IDs appear in it (internal, like the variant); the
+   walkthrough happens live in the session.
+5. **Surfacing.** `/log` mentions `/prep` once on a `reply`/`screen`/
+   `onsite`; the tracker's `next_action` for those statuses names it; `/next`
+   ranks an upcoming interview with no `prep.md` above everything else.
+
+**What does not change.** Every red line holds. Nothing runs unattended;
+nothing contacts an employer or schedules anything; `goals.yaml`,
+`resume.yaml`, and `config.yaml` stay the human's. §2's other non-goals
+(negotiation, networking CRM, web UI) remain non-goals.

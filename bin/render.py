@@ -22,7 +22,13 @@ import os
 import sys
 import tempfile
 
-import yaml
+# Make lib/ importable whether run from repo root or elsewhere.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_HERE, "lib"))
+
+import yaml  # noqa: E402
+
+from variant import skills as variant_skills  # noqa: E402
 
 
 def _contact_values(contact: dict):
@@ -42,21 +48,6 @@ def _contact_values(contact: dict):
                     yield str(item)
         else:
             yield str(value)
-
-
-def _skills(variant: dict) -> list[str]:
-    """The variant's skills list, under either accepted key (PRD §19).
-
-    `technologies:` is the original key; `skills:` is the field-neutral
-    synonym. Both may be present — render the union, in that order, without
-    duplicates.
-    """
-    out: list[str] = []
-    for key in ("skills", "technologies"):
-        for item in variant.get(key, []) or []:
-            if str(item).strip() and str(item) not in out:
-                out.append(str(item))
-    return out
 
 
 def _esc(text: str) -> str:
@@ -102,7 +93,7 @@ def build_typst(variant: dict) -> str:
                 lines.append(f"- {_esc(bullet.get('text', ''))}")
         lines.append("")
 
-    skills = _skills(variant)
+    skills = variant_skills(variant)
     if skills:
         lines.append("== Skills")
         lines.append(_esc(", ".join(skills)))
@@ -146,7 +137,7 @@ def build_markdown(variant: dict) -> str:
             lines.append("")
         lines.append("")
 
-    skills = _skills(variant)
+    skills = variant_skills(variant)
     if skills:
         lines += ["## Skills", "", ", ".join(skills)]
 

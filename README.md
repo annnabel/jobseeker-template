@@ -50,7 +50,12 @@ Think of it as a very careful assistant that:
   invent numbers, employers, or technologies, and even bans AI-sounding
   phrases so letters read like you wrote them.
 - **Tracks everything.** A simple spreadsheet (`tracker.csv`) shows every
-  application and its status. It updates itself; you never edit it.
+  application and its status. It updates itself; you never edit it. When an
+  application has sat silent for a week it nudges you to send a short
+  follow-up (you write and send it — a polite check-in measurably lifts
+  response rates), and it can report your response and callback rates by
+  career track and by resume angle, so you can see which argument is actually
+  landing.
 
 ## Which job boards the sweep can reach
 
@@ -151,6 +156,11 @@ Five commands, in order — this is the whole system:
    you hear back (or don't), one more `/log` line records it. Silence
    eventually auto-marks the role "ghosted" with no effort from you.
 
+And when a reply turns into an interview, run **`/prep`** — it builds likely
+questions, practice stories drawn from your own history, and plain-spoken
+answers for anything the role wants that you don't have. It preps you to
+back up exactly what your application said, never to claim more.
+
 ### With the automatic sweep turned on (optional)
 
 Say yes when `/setup` offers it (or re-run `/setup` later), and each weekday
@@ -172,6 +182,7 @@ walks you through the two copy-paste guides (`docs/ENVIRONMENT.md` and
 | `/choose` | Pick which queued roles are worth tailoring |
 | `/tailor` | Write the resume + cover letter for the roles you kept |
 | `/log` | Record "I applied" or any status change, in about two minutes |
+| `/prep` | When you land an interview: likely questions, practice stories from your own history, and honest answers for the gaps |
 | `/next` | "What should I do now?" — reads the state of play, gives you one next step |
 | `/review` | Re-open a draft you deferred and finish reviewing it |
 | `/sweep` | (Optional) the nightly search itself — run by the schedule, not by you |
@@ -252,6 +263,7 @@ python3 bin/fetch.py --dry-run      # fetch + dedupe, writes nothing
 python3 bin/seen.py status          # what the dedupe index has seen
 python3 bin/validate.py <variant.yaml>
 python3 bin/validate.py --lint-bank      # the bank's angles: claimed, proved, used
+python3 bin/tracker.py --stats           # funnel, callback rates, follow-ups due
 python3 bin/ats_score.py --jd jd.md --variant <variant.yaml>   # keyword coverage
 python3 bin/check_template_clean.py # template-repo guard (fails in your instance, by design)
 ```

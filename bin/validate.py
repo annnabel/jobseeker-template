@@ -25,7 +25,13 @@ import os
 import re
 import sys
 
-import yaml
+# Make lib/ importable whether run from repo root or elsewhere.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_HERE, "lib"))
+
+import yaml  # noqa: E402
+
+from variant import flat_text, skills as variant_skills  # noqa: E402
 
 # ── evidence bank parsing ──────────────────────────────────────────────────
 
@@ -315,22 +321,6 @@ def flatten_bullets(variant: dict) -> list[tuple[str, dict]]:
     return out
 
 
-def claimed_skills(variant: dict) -> list[str]:
-    """The variant's skills list, under either accepted key.
-
-    `technologies:` is the original key and still works. `skills:` is the
-    field-neutral synonym — a nurse's variant lists clinical competencies, a
-    teacher's lists curricula, and neither is a technology (PRD §19). Both may
-    be present; the union is what gets gated.
-    """
-    out: list[str] = []
-    for key in ("skills", "technologies"):
-        for item in variant.get(key, []) or []:
-            if str(item).strip() and str(item) not in out:
-                out.append(str(item))
-    return out
-
-
 def canonical_employers(variant: dict) -> list[dict]:
     out: list[dict] = []
     for section in variant.get("sections", []) or []:
@@ -407,7 +397,7 @@ def validate_resume(
             )
 
     # A skill in the skills list must be tagged by some evidence entry.
-    for skill in claimed_skills(variant):
+    for skill in variant_skills(variant):
         if skill.strip().lower() not in tags:
             errors.append(f"skill {skill!r} is claimed but no evidence entry tags it")
 
@@ -433,24 +423,6 @@ def validate_resume(
 # ── cover mode ─────────────────────────────────────────────────────────────
 
 
-def _variant_text(variant: dict) -> str:
-    """All human-readable strings in the variant, flattened for substring search."""
-    parts: list[str] = []
-
-    def walk(node):
-        if isinstance(node, dict):
-            for v in node.values():
-                walk(v)
-        elif isinstance(node, list):
-            for v in node:
-                walk(v)
-        elif node is not None:
-            parts.append(str(node))
-
-    walk(variant)
-    return "\n".join(parts)
-
-
 def validate_cover(
     cover_path: str,
     variant_path: str,
@@ -468,7 +440,7 @@ def validate_cover(
     with open(variant_path, encoding="utf-8") as fh:
         variant = yaml.safe_load(fh) or {}
 
-    vtext = _variant_text(variant)
+    vtext = flat_text(variant)
     variant_nums = set(numerals(vtext))
 
     # Numerals from the company note (the hook) are also allowed — they are

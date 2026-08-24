@@ -10,19 +10,15 @@ requests made inside one invocation must pace themselves.
 """
 from __future__ import annotations
 
-import re
 import time
 
-from locations import location_matches
+from filters import location_matches
 from schema import Posting
+from sources import strip_html
 from sources._http import get_json
 
 BASE = "https://api.smartrecruiters.com/v1/companies/{slug}/postings"
 PAGE_SIZE = 100
-
-
-def _strip_html(text: str) -> str:
-    return re.sub(r"<[^>]+>", " ", text or "").strip()
 
 
 def _list_postings(slug: str) -> list[dict]:
@@ -59,7 +55,7 @@ def _detail(slug: str, posting_id: str) -> tuple[str, str]:
     description = " ".join(
         part
         for part in (
-            _strip_html((sections.get(key) or {}).get("text", ""))
+            strip_html((sections.get(key) or {}).get("text", ""))
             for key in ("jobDescription", "qualifications", "additionalInformation")
         )
         if part

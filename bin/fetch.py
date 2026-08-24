@@ -26,9 +26,13 @@ sys.path.insert(0, os.path.join(_HERE, "lib"))
 import yaml  # noqa: E402
 
 from dedupe import dedupe  # noqa: E402
-from freshness import is_fresh  # noqa: E402
-from locations import location_matches  # noqa: E402
-from roles import load_goals, role_filter as goals_role_filter, title_matches  # noqa: E402
+from filters import (  # noqa: E402
+    is_fresh,
+    load_goals,
+    location_matches,
+    role_filter as goals_role_filter,
+    title_matches,
+)
 from schema import Posting  # noqa: E402
 from seen import load_seen  # noqa: E402
 from sources import get_adapter  # noqa: E402

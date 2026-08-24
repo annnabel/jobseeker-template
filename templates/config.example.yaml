@@ -43,6 +43,10 @@ ats:
 tracker:
   # Applied + silent this many days -> auto-ghosted. Silence needs no /log. G4.
   ghost_days: 21
+  # Applied + silent this many days -> the tracker's next_action nudges YOU to
+  # send a short follow-up (a polite check-in measurably lifts response rates).
+  # You write and send it yourself — nothing here contacts anyone. 0 disables.
+  followup_days: 7
 
 style:
   # Deterministic style gate (validate.py). Any of these substrings in a resume
