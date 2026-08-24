@@ -18,13 +18,10 @@ from __future__ import annotations
 import re
 
 from schema import Posting
+from sources import strip_html
 from sources._http import get_json
 
 BASE = "https://{slug}.recruitee.com/api/offers/"
-
-
-def _strip_html(text: str) -> str:
-    return re.sub(r"<[^>]+>", " ", text or "").strip()
 
 
 def _iso(raw: str) -> str:
@@ -50,8 +47,8 @@ def fetch(slug: str, location_filter: list[str] | None = None) -> list[Posting]:
         location = o.get("location") or ", ".join(
             x for x in (o.get("city", ""), o.get("state_name", ""), o.get("country", "")) if x
         )
-        jd = _strip_html(o.get("description", ""))
-        reqs = _strip_html(o.get("requirements", ""))
+        jd = strip_html(o.get("description", ""))
+        reqs = strip_html(o.get("requirements", ""))
         description = (jd + "\n\n" + reqs).strip() if reqs else jd
         out.append(
             Posting(

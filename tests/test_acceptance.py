@@ -253,7 +253,7 @@ def test_fetch_survives_a_profile_yaml_that_is_not_a_mapping(tmp_path):
 
 def test_location_filter_matching():
     sys.path.insert(0, os.path.join(BIN, "lib"))
-    from locations import location_matches
+    from filters import location_matches
 
     # Placeholder place names: the filter is regex-only and knows no geography,
     # so the test exercises the shapes boards actually print, not a real region.
@@ -283,7 +283,7 @@ def test_freshness_filter():
     sys.path.insert(0, os.path.join(BIN, "lib"))
     from datetime import datetime, timezone
 
-    from freshness import is_fresh, parse_updated_at
+    from filters import is_fresh, parse_updated_at
 
     now = datetime(2026, 7, 17, tzinfo=timezone.utc)
     # Fresh, across the formats the adapters actually emit.
@@ -474,7 +474,7 @@ def test_tracker_auto_ghost(tmp_path):
 
 def test_role_filter_matching():
     sys.path.insert(0, os.path.join(BIN, "lib"))
-    from roles import title_matches
+    from filters import title_matches
 
     patterns = ["data analyst", "business analyst", "analytics", r"\binsights\b"]
     for title in (
@@ -493,7 +493,7 @@ def test_role_filter_matching():
 
 def test_load_goals_missing_file(tmp_path):
     sys.path.insert(0, os.path.join(BIN, "lib"))
-    from roles import load_goals, role_filter
+    from filters import load_goals, role_filter
 
     # An absent goals.yaml is a valid state (it arrives during /setup).
     assert load_goals(str(tmp_path)) == {}

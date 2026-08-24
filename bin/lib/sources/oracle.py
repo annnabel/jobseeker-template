@@ -17,11 +17,11 @@ inside one.
 """
 from __future__ import annotations
 
-import re
 import time
 
-from locations import location_matches
+from filters import location_matches
 from schema import Posting
+from sources import strip_html
 from sources._http import get_json
 
 LIST = (
@@ -32,10 +32,6 @@ LIST = (
 )
 PAGE_SIZE = 100
 MAX_PAGES = 20  # cap: 100 * 20 = 2000 requisitions per board
-
-
-def _strip_html(text: str) -> str:
-    return re.sub(r"<[^>]+>", " ", text or "").strip()
 
 
 def _parse_slug(slug: str) -> tuple[str, str]:
@@ -71,7 +67,7 @@ def fetch(slug: str, location_filter: list[str] | None = None) -> list[Posting]:
             # clean the same way smartrecruiters does.
             if not location_matches(location, location_filter):
                 continue
-            description = _strip_html(
+            description = strip_html(
                 " ".join(
                     s
                     for s in (

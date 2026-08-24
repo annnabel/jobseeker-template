@@ -11,15 +11,11 @@ A single GET; no pagination (the feed is the whole board).
 """
 from __future__ import annotations
 
-import re
 
-from locations import location_matches
+from filters import location_matches
 from schema import Posting
+from sources import strip_html
 from sources._http import get_json
-
-
-def _strip_html(text: str) -> str:
-    return re.sub(r"<[^>]+>", " ", text or "").strip()
 
 
 def _locations(jobposting: dict) -> str:
@@ -59,7 +55,7 @@ def fetch(slug: str, location_filter: list[str] | None = None) -> list[Posting]:
         if not location_matches(location, location_filter):
             continue
         org = (jp.get("hiringOrganization") or {}).get("name", "")
-        description = _strip_html(jp.get("description", "") or item.get("content_html", ""))
+        description = strip_html(jp.get("description", "") or item.get("content_html", ""))
         out.append(
             Posting(
                 source="teamtailor",
