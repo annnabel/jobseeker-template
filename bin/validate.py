@@ -91,7 +91,7 @@ EV_REF = re.compile(r"ev:\d+")
 
 
 def parse_angles(path: str) -> dict[str, dict]:
-    """Parse the bank's `## Angles` block into {slug: {claim, proof, serves}}.
+    r"""Parse the bank's `## Angles` block into {slug: {claim, proof, serves}}.
 
     An angle is a positioning stance: one claim, proved by evidence, aimed at a
     track (PRD §21). The current shape is a block per angle —

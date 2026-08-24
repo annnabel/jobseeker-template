@@ -12,11 +12,23 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "ruff"]
+# Kept in step with .github/workflows/ci.yml, so a local run lints exactly
+# the way CI does. Ruff's default rule set moves between releases; see the
+# [tool.ruff.lint] note below.
+dev = ["pytest==9.1.1", "ruff==0.16.3"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+# Pin the rule set explicitly. Ruff's *default* selection changes between
+# releases, so an unpinned `select` means "lint" silently redefines itself
+# whenever CI installs a newer ruff — which is exactly how this workflow
+# went red on every run without a line of code changing. These are the
+# classic defaults (E4/E7/E9/F) plus W, which catches invalid escape
+# sequences. Widening this list is a deliberate edit, never a surprise.
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "W"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
