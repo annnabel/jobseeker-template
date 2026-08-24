@@ -18,6 +18,9 @@ The human submitted in their own browser. Promote the queued draft:
   `status: applied` and `applied: <today>` (and `date:` if unset).
 - Regenerate and commit (below). Everything lives on `main`, so the commit is
   the record — push it (PRD §6, §18).
+- Mention once: if the application stays silent past `tracker.followup_days`
+  (default 7), the tracker's `next_action` will nudge them to send a short
+  follow-up — theirs to write and send, by hand.
 
 ### 2. "<role> → <event>"
 A positive event happened. Set `status:` in the role's `meta.yaml` to one of:

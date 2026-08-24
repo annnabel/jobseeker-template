@@ -458,6 +458,47 @@ def test_tracker_regeneration_identical(tmp_path):
     assert out.read_bytes() == first
 
 
+def test_tracker_followup_nudge(tmp_path):
+    # Applied, silent past followup_days but under ghost_days -> the row's
+    # next_action nudges the human to follow up. Nothing is sent by anything.
+    applied = tmp_path / "applied" / "2026-07-01_example_role"
+    applied.mkdir(parents=True)
+    (applied / "meta.yaml").write_text(
+        "company: Example Co\ntitle: Engineer\ndate: 2026-07-01\n"
+        "applied: 2026-07-01\nstatus: applied\n"
+    )
+    out = tmp_path / "tracker.csv"
+    run("tracker.py", "--root", str(tmp_path), "-o", str(out), "--today", "2026-07-10")
+    text = out.read_text()
+    assert "send a follow-up" in text
+    assert "ghosted" not in text
+    # Before followup_days it still just waits.
+    run("tracker.py", "--root", str(tmp_path), "-o", str(out), "--today", "2026-07-03")
+    assert "send a follow-up" not in out.read_text()
+
+
+def test_tracker_stats(tmp_path):
+    # --stats derives the funnel from the same meta.yaml files and writes
+    # nothing. Rates are computed, never estimated.
+    for slug, status, track in (
+        ("a_co", "reply", "track-one"),
+        ("b_co", "applied", "track-one"),
+        ("c_co", "ghosted", "track-two"),
+    ):
+        d = tmp_path / "applied" / f"2026-07-01_{slug}"
+        d.mkdir(parents=True)
+        (d / "meta.yaml").write_text(
+            f"company: {slug}\ntitle: Role\ndate: 2026-07-01\napplied: 2026-07-01\n"
+            f"status: {status}\ntrack: {track}\n"
+        )
+    r = run("tracker.py", "--root", str(tmp_path), "--stats", "--today", "2026-07-05")
+    assert r.returncode == 0, r.stderr
+    assert "applications   3" in r.stdout
+    assert "callbacks      1/3 (33%)" in r.stdout
+    assert "track-one" in r.stdout and "track-two" in r.stdout
+    assert not (tmp_path / "tracker.csv").exists()  # --stats writes nothing
+
+
 def test_tracker_auto_ghost(tmp_path):
     applied = tmp_path / "applied" / "2026-01-01_old_role"
     applied.mkdir(parents=True)

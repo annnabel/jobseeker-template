@@ -50,7 +50,12 @@ Think of it as a very careful assistant that:
   invent numbers, employers, or technologies, and even bans AI-sounding
   phrases so letters read like you wrote them.
 - **Tracks everything.** A simple spreadsheet (`tracker.csv`) shows every
-  application and its status. It updates itself; you never edit it.
+  application and its status. It updates itself; you never edit it. When an
+  application has sat silent for a week it nudges you to send a short
+  follow-up (you write and send it — a polite check-in measurably lifts
+  response rates), and it can report your response and callback rates by
+  career track and by resume angle, so you can see which argument is actually
+  landing.
 
 ## Which job boards the sweep can reach
 
@@ -252,6 +257,7 @@ python3 bin/fetch.py --dry-run      # fetch + dedupe, writes nothing
 python3 bin/seen.py status          # what the dedupe index has seen
 python3 bin/validate.py <variant.yaml>
 python3 bin/validate.py --lint-bank      # the bank's angles: claimed, proved, used
+python3 bin/tracker.py --stats           # funnel, callback rates, follow-ups due
 python3 bin/ats_score.py --jd jd.md --variant <variant.yaml>   # keyword coverage
 python3 bin/check_template_clean.py # template-repo guard (fails in your instance, by design)
 ```
