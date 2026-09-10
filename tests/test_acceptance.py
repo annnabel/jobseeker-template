@@ -600,3 +600,211 @@ def test_template_guard_catches_personal_data(tmp_path):
     r = run("check_template_clean.py", "--root", str(tmp_path))
     assert r.returncode == 1, r.stderr
     assert "evidence-bank.md" in r.stderr
+
+
+# ── skills layout, headline, prose summary (PRD §25) ──────────────────────
+
+GROUPED = os.path.join(FIX, "variant_grouped.yaml")
+
+
+def validate_variant(path):
+    return run(
+        "validate.py", str(path),
+        "--bank", BANK,
+        "--resume", os.path.join(FIX, "resume.yaml"),
+        "--config", NO_CONFIG,
+    )
+
+
+def test_grouped_skills_validate_and_render_one_category_per_line(tmp_path):
+    assert validate_variant(GROUPED).returncode == 0
+    out = tmp_path / "resume.md"
+    r = run("render.py", GROUPED, "-o", str(out))
+    assert r.returncode == 0, r.stderr
+    text = out.read_text(encoding="utf-8")
+    # Each category is its own line, not one long comma-joined list.
+    assert "**Delivery Pipelines:** CI-CD, GitHub Actions, BuildKit" in text
+    assert "**Infrastructure:** Docker, Terraform, AWS" in text
+    assert "**Operations:** Incident Response, On-Call" in text
+    block = text.split("## Skills\n\n")[1].split("\n\n")[0].splitlines()
+    # Consecutive lines, hard-broken (two trailing spaces) except the last.
+    assert block == [
+        "**Delivery Pipelines:** CI-CD, GitHub Actions, BuildKit  ",
+        "**Infrastructure:** Docker, Terraform, AWS  ",
+        "**Operations:** Incident Response, On-Call",
+    ]
+
+
+def test_skills_render_after_the_summary_not_after_the_last_job(tmp_path):
+    out = tmp_path / "resume.md"
+    run("render.py", GROUPED, "-o", str(out))
+    text = out.read_text(encoding="utf-8")
+    assert text.index("## Summary") < text.index("## Skills") < text.index("## Experience")
+
+
+def test_skills_stay_last_when_the_variant_opens_with_experience(tmp_path):
+    variant = tmp_path / "variant.yaml"
+    variant.write_text(
+        "name: Pat Doe\nskills: [docker]\nsections:\n  - heading: Experience\n"
+        "    entries:\n      - company: Example Co\n        title: Staff Engineer\n"
+        "        dates: \"2021-03 → 2023-08\"\n        bullets:\n"
+        "          - text: Ran the platform.\n            ev: ev:0031\n",
+        encoding="utf-8",
+    )
+    out = tmp_path / "resume.md"
+    r = run("render.py", str(variant), "-o", str(out))
+    assert r.returncode == 0, r.stderr
+    text = out.read_text(encoding="utf-8")
+    assert text.index("## Experience") < text.index("## Skills")
+
+
+def test_grouped_skills_are_gated_item_by_item(tmp_path):
+    import yaml
+
+    src = yaml.safe_load(open(GROUPED, encoding="utf-8"))
+    src["skills"][0]["items"].append("Underwater Basket Weaving")
+    variant = tmp_path / "variant.yaml"
+    variant.write_text(yaml.safe_dump(src, sort_keys=False, allow_unicode=True), encoding="utf-8")
+    r = validate_variant(variant)
+    assert r.returncode == 1, r.stderr
+    assert "Underwater Basket Weaving" in r.stderr
+    # The category heading is layout, not a claim: it is never reported.
+    assert "Delivery Pipelines" not in r.stderr
+
+
+def test_a_category_with_no_items_or_no_name_fails(tmp_path):
+    import yaml
+
+    src = yaml.safe_load(open(GROUPED, encoding="utf-8"))
+    src["skills"].append({"category": "Empty", "items": []})
+    src["skills"].append({"items": ["docker"]})
+    variant = tmp_path / "variant.yaml"
+    variant.write_text(yaml.safe_dump(src, sort_keys=False, allow_unicode=True), encoding="utf-8")
+    r = validate_variant(variant)
+    assert r.returncode == 1, r.stderr
+    assert "lists no items" in r.stderr
+    assert "no category name" in r.stderr
+
+
+def test_mixing_grouped_and_bare_skills_fails(tmp_path):
+    import yaml
+
+    src = yaml.safe_load(open(GROUPED, encoding="utf-8"))
+    src["skills"].append("docker")
+    variant = tmp_path / "variant.yaml"
+    variant.write_text(yaml.safe_dump(src, sort_keys=False, allow_unicode=True), encoding="utf-8")
+    r = validate_variant(variant)
+    assert r.returncode == 1, r.stderr
+    assert "mix grouped and ungrouped" in r.stderr
+
+
+def test_a_skill_matches_its_tag_however_it_is_punctuated(tmp_path):
+    # The bank tags `github-actions` and `ci-cd`; the resume prints them the
+    # way the product and the posting spell them. Same word, same claim.
+    variant = tmp_path / "variant.yaml"
+    variant.write_text(
+        "name: Pat Doe\nskills: [GitHub Actions, CI/CD, incident_response]\n"
+        "sections:\n  - heading: Summary\n    bullets:\n"
+        "      - text: Ran the platform.\n        ev: ev:0031\n",
+        encoding="utf-8",
+    )
+    assert validate_variant(variant).returncode == 0
+    # A synonym is still a claim the bank has to make itself.
+    variant.write_text(
+        "name: Pat Doe\nskills: [k8s]\nsections:\n  - heading: Summary\n    bullets:\n"
+        "      - text: Ran the platform.\n        ev: ev:0031\n",
+        encoding="utf-8",
+    )
+    r = validate_variant(variant)
+    assert r.returncode == 1 and "k8s" in r.stderr
+
+
+def test_cover_skill_check_tolerates_punctuation_both_ways(tmp_path):
+    # A cover saying "GitHub Actions" is backed by a variant printing it that
+    # way, even though the bank's tag is hyphenated.
+    cover = tmp_path / "cover.md"
+    cover.write_text("I run GitHub Actions for a living.\n", encoding="utf-8")
+    r = run(
+        "validate.py", "--cover", str(cover), "--variant", GROUPED,
+        "--bank", BANK, "--config", NO_CONFIG,
+    )
+    assert r.returncode == 0, r.stderr
+    # ...and a skill the variant never carries is still caught in the cover.
+    cover.write_text("I run Buildkit and Terraform and Kubernetes clusters.\n", encoding="utf-8")
+    src = open(GROUPED, encoding="utf-8").read().replace("BuildKit", "Docker")
+    variant = tmp_path / "variant.yaml"
+    variant.write_text(src, encoding="utf-8")
+    r = run(
+        "validate.py", "--cover", str(cover), "--variant", str(variant),
+        "--bank", BANK, "--config", NO_CONFIG,
+    )
+    assert r.returncode == 1, r.stderr
+    assert "buildkit" in r.stderr
+
+
+def test_headline_renders_under_the_name(tmp_path):
+    out = tmp_path / "resume.md"
+    run("render.py", GROUPED, "-o", str(out))
+    text = out.read_text(encoding="utf-8")
+    assert text.startswith("# Pat Doe\n\n**Platform Engineer**\n")
+
+
+def test_headline_may_carry_no_numeral_and_no_banned_style(tmp_path):
+    src = open(GROUPED, encoding="utf-8").read()
+    variant = tmp_path / "variant.yaml"
+    variant.write_text(
+        src.replace("headline: Platform Engineer", "headline: Platform Engineer, 10 years"),
+        encoding="utf-8",
+    )
+    r = validate_variant(variant)
+    assert r.returncode == 1, r.stderr
+    assert "headline asserts a numeral" in r.stderr
+    variant.write_text(
+        src.replace("headline: Platform Engineer", "headline: Platform Engineer — paved roads"),
+        encoding="utf-8",
+    )
+    r = validate_variant(variant)
+    assert r.returncode == 1, r.stderr
+    assert "[headline] banned style pattern" in r.stderr
+
+
+def test_a_paragraph_section_renders_as_prose(tmp_path):
+    out = tmp_path / "resume.md"
+    run("render.py", GROUPED, "-o", str(out))
+    summary = out.read_text(encoding="utf-8").split("## Summary")[1].split("## Skills")[0]
+    assert "- " not in summary
+    assert (
+        "Platform engineer who makes the paved road other teams ship on. "
+        "Rebuilt the on-call rotation" in summary
+    )
+
+
+def test_a_paragraph_section_still_needs_evidence_ids(tmp_path):
+    src = open(GROUPED, encoding="utf-8").read().replace("        ev: ev:0033\n", "", 1)
+    variant = tmp_path / "variant.yaml"
+    variant.write_text(src, encoding="utf-8")
+    out = tmp_path / "resume.md"
+    r = run("render.py", str(variant), "-o", str(out))
+    assert r.returncode != 0
+    assert not out.exists()
+
+
+def test_grouped_skills_render_to_typst(tmp_path):
+    r = run("render.py", GROUPED, "-o", "unused.pdf", "--dump-typst")
+    assert r.returncode == 0, r.stderr
+    assert "*Delivery Pipelines:* CI-CD, GitHub Actions, BuildKit" in r.stdout
+    assert r.stdout.index("== Summary") < r.stdout.index("== Skills") < r.stdout.index("== Experience")
+    assert "#text(size: 12pt)[Platform Engineer]" in r.stdout
+
+
+def test_grouped_skills_are_scored_by_item():
+    sys.path.insert(0, BIN)
+    import yaml
+
+    from ats_score import load_ats_config, score
+
+    jd = open(os.path.join(FIX, "jd_sample.md"), encoding="utf-8").read()
+    variant = yaml.safe_load(open(GROUPED, encoding="utf-8"))
+    rows = {r["keyword"]: r for r in score(jd, variant, None, load_ats_config(None))["keywords"]}
+    assert rows["ci/cd"]["in_resume"]
+    assert rows["incident response"]["in_resume"]

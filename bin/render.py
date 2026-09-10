@@ -12,6 +12,14 @@ Both modes emit real text, single column, standard headings, and fail loudly if
 any bullet lacks an evidence ID — a resume that renders is a resume that could
 be sent, so the provenance floor is enforced here too, not only in validate.py.
 
+The layout is the one recruiters read fastest and parsers read cleanly (PRD
+§25): name, an optional `headline:` (the target, never a held title), the
+contact line, then the sections in the variant's order — with Skills rendered
+right after the summary, where a screener's eye lands, rather than after the
+last job. A section with `style: paragraph` renders its bullets as prose (the
+summary); everything else is a list. Skills are one category per line when the
+variant groups them, one comma-separated line when it doesn't.
+
 If the output isn't one you'd send unedited, fix this file — do not bail to
 hand-editing. That failure mode kills the whole system (PRD §8.2).
 """
@@ -28,7 +36,7 @@ sys.path.insert(0, os.path.join(_HERE, "lib"))
 
 import yaml  # noqa: E402
 
-from variant import skills as variant_skills  # noqa: E402
+from variant import skill_groups  # noqa: E402
 
 
 def _contact_values(contact: dict):
@@ -58,11 +66,40 @@ def _esc(text: str) -> str:
     return out
 
 
+def _is_paragraph(section: dict) -> bool:
+    """`style: paragraph` renders a section's bullets as one block of prose."""
+    return str(section.get("style", "") or "").strip().lower() == "paragraph"
+
+
+def _skills_after(sections: list[dict]) -> int:
+    """Index of the section Skills should follow: the summary when the variant
+    opens with one (a bullets-only first section), else the last section.
+
+    Skills near the top is the layout screeners and parsers both favour — a
+    reader who stops after the summary has still seen the capabilities the
+    angle rests on. A variant that opens straight into experience keeps
+    Skills at the end, where it was.
+    """
+    if sections and sections[0].get("bullets") and not sections[0].get("entries"):
+        return 0
+    return len(sections) - 1
+
+
+def _skills_lines(variant: dict, esc, bold) -> list[str]:
+    """One rendered line per skills group; a nameless group is a bare list."""
+    out: list[str] = []
+    for category, items in skill_groups(variant):
+        joined = esc(", ".join(items))
+        out.append(f"{bold(esc(category))} {joined}" if category else joined)
+    return out
+
+
 def build_typst(variant: dict) -> str:
     """Generate ATS-safe Typst markup. Single column, standard headings, no
     tables/columns/graphics. Raises ValueError if a bullet lacks `ev`.
     """
     name = variant.get("name", "")
+    headline = str(variant.get("headline", "") or "").strip()
     contact = variant.get("contact", {}) or {}
     contact_line = "  |  ".join(_contact_values(contact))
 
@@ -72,16 +109,27 @@ def build_typst(variant: dict) -> str:
         "#set par(justify: false, leading: 0.55em)",
         f"#align(center)[#text(size: 18pt, weight: \"bold\")[{_esc(name)}]]",
     ]
+    if headline:
+        lines.append(f"#align(center)[#text(size: 12pt)[{_esc(headline)}]]")
     if contact_line:
         lines.append(f"#align(center)[{_esc(contact_line)}]")
     lines.append("#v(0.4em)")
 
-    for section in variant.get("sections", []) or []:
+    sections = variant.get("sections", []) or []
+    skills_lines = _skills_lines(variant, _esc, lambda t: f"*{t}:*")
+    skills_after = _skills_after(sections)
+
+    for i, section in enumerate(sections):
         heading = section.get("heading", "")
         lines.append(f"== {_esc(heading)}")
-        for bullet in section.get("bullets", []) or []:
+        bullets = section.get("bullets", []) or []
+        for bullet in bullets:
             _require_ev(bullet, heading)
-            lines.append(f"- {_esc(bullet.get('text', ''))}")
+        if bullets and _is_paragraph(section):
+            lines.append(" ".join(_esc(b.get("text", "")) for b in bullets))
+        else:
+            for bullet in bullets:
+                lines.append(f"- {_esc(bullet.get('text', ''))}")
         for entry in section.get("entries", []) or []:
             company = _esc(entry.get("company", ""))
             title = _esc(entry.get("title", ""))
@@ -92,11 +140,15 @@ def build_typst(variant: dict) -> str:
                 _require_ev(bullet, f"{heading}/{entry.get('company','?')}")
                 lines.append(f"- {_esc(bullet.get('text', ''))}")
         lines.append("")
+        if skills_lines and i == skills_after:
+            lines.append("== Skills")
+            for line in skills_lines:
+                lines += [line, ""]
 
-    skills = variant_skills(variant)
-    if skills:
+    if skills_lines and not sections:
         lines.append("== Skills")
-        lines.append(_esc(", ".join(skills)))
+        for line in skills_lines:
+            lines += [line, ""]
 
     return "\n".join(lines) + "\n"
 
@@ -107,20 +159,37 @@ def build_markdown(variant: dict) -> str:
     ValueError if a bullet lacks `ev` (evidence IDs are not printed).
     """
     name = variant.get("name", "")
+    headline = str(variant.get("headline", "") or "").strip()
     contact = variant.get("contact", {}) or {}
     contact_line = " | ".join(_contact_values(contact))
 
     lines: list[str] = [f"# {name}", ""]
+    if headline:
+        lines += [f"**{headline}**", ""]
     if contact_line:
         lines += [contact_line, ""]
 
-    for section in variant.get("sections", []) or []:
+    sections = variant.get("sections", []) or []
+    # Two trailing spaces end a markdown line without opening a paragraph, so
+    # each category stays on its own line in the rendered document and pastes
+    # into a portal as separate lines.
+    skills_lines = _skills_lines(variant, str, lambda t: f"**{t}:**")
+    skills_block = ["## Skills", ""]
+    skills_block += [line + "  " for line in skills_lines[:-1]] + skills_lines[-1:] + [""]
+    skills_after = _skills_after(sections)
+
+    for i, section in enumerate(sections):
         heading = section.get("heading", "")
         lines.append(f"## {heading}")
         lines.append("")
-        for bullet in section.get("bullets", []) or []:
+        bullets = section.get("bullets", []) or []
+        for bullet in bullets:
             _require_ev(bullet, heading)
-            lines.append(f"- {bullet.get('text', '')}")
+        if bullets and _is_paragraph(section):
+            lines += [" ".join(str(b.get("text", "")) for b in bullets), ""]
+        else:
+            for bullet in bullets:
+                lines.append(f"- {bullet.get('text', '')}")
         for entry in section.get("entries", []) or []:
             company = entry.get("company", "")
             title = entry.get("title", "")
@@ -136,10 +205,11 @@ def build_markdown(variant: dict) -> str:
                 lines.append(f"- {bullet.get('text', '')}")
             lines.append("")
         lines.append("")
+        if skills_lines and i == skills_after:
+            lines += skills_block
 
-    skills = variant_skills(variant)
-    if skills:
-        lines += ["## Skills", "", ", ".join(skills)]
+    if skills_lines and not sections:
+        lines += skills_block
 
     out = "\n".join(lines)
     while "\n\n\n" in out:

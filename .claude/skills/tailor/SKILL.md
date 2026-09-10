@@ -67,7 +67,9 @@ here — discarding a shortlist entry is not a new disposition (PRD §15.7).
 
 For each kept role, invoke the `tailor` subagent (opus) with the contents of
 `queue/shortlist/<slug>/jd.md` and `meta.yaml`. It writes
-`queue/ready/<slug>/` — `resume.yaml`, `resume.md` (via
+`queue/ready/<slug>/` — `resume.yaml` (the shape in
+`templates/variant.example.yaml`: headline, prose summary, skills grouped by
+category with the angle's categories first), `resume.md` (via
 `python3 bin/render.py resume.yaml -o resume.md`), `cover.md`, `jd.md`,
 `meta.yaml` (carrying forward the shortlist meta unchanged — the triage
 block, and on swept entries `swept:` and `fingerprint:` (`seen.py audit`
@@ -94,7 +96,11 @@ show the [SHORTFALL]s — do not ship a bad draft, and do not paper over it.
 ## Step 4 — review it together, right now
 
 Walk each draft exactly as `/review` would: show `resume.md` and `cover.md`,
-the ATS scorecard, and the changes-made list from the tailor's report. Show the
+the ATS scorecard, and the changes-made list from the tailor's report. Read the
+top third with the human first — headline, summary, the skills lines — since
+that is what a screener reads before deciding whether to read on; if the
+skills came out as one undifferentiated list, or the first category isn't the
+one the angle rests on, fix that before the bullets. Show the
 scorecard as the tailor produced it — required tier first, every miss with its
 verdict — and say plainly which misses are [SHORTFALL]s. If the human's answer
 to a `[GAP]` adds evidence that covers a miss, re-run

@@ -1,0 +1,83 @@
+# variant.yaml — the shape of one tailored resume. PRD §8.2, §21, §25.
+#
+# The tailor writes one of these per kept role into queue/ready/<slug>/, then
+# `python3 bin/render.py resume.yaml -o resume.md` turns it into the document
+# and `python3 bin/validate.py resume.yaml` gates every claim in it. This file
+# is the reference for that shape. EVERY VALUE IS A PLACEHOLDER — the field,
+# the titles, the skills and the categories all come from the candidate's own
+# goals.yaml, resume.yaml and evidence bank, never from here.
+
+name: <Full Name>
+
+# Optional. The job being applied FOR, as the track's `titles` or the posting
+# itself names it — a target, never a title the candidate held (validate.py
+# does not check it against resume.yaml because it is not a claim of
+# employment). No numerals (nothing for one to trace to) and no skills list
+# (those belong below, where the linter checks each one). One short line.
+headline: <the target title>
+
+contact:
+  email: <email>
+  phone: <phone>                    # optional
+  location: <City, Region>          # or "Remote"
+  links:                            # optional, each printed as its own entry
+    - <a link worth following>
+
+# The positioning stance this resume argues: a slug from the bank's `## Angles`.
+# validate.py fails a variant positioned on an angle the bank never declared.
+angle: <angle-slug>
+
+# Skills, grouped. One line renders per category, in this order, so put the
+# categories the angle rests on first. Category names come from the posting's
+# own vocabulary where it has one; otherwise whatever the candidate's field
+# calls its capabilities. Every item must be tagged by an evidence entry —
+# spelling may differ in case and punctuation (`github-actions` in the bank,
+# `GitHub Actions` here), nothing else may. Three to six categories, roughly
+# four to ten items each, only what serves THIS posting. A bank with too few
+# tags to group honestly uses the flat form instead:
+#
+#   skills: [<a-skill>, <another-skill>]
+#
+# `technologies:` is the older name for this field and still works.
+skills:
+  - category: <the category the angle rests on, in the posting's words>
+    items: [<Skill>, <Skill>, <Skill>]
+  - category: <the next category>
+    items: [<Skill>, <Skill>]
+
+sections:
+  # The summary: prose, not a list. `style: paragraph` joins the bullets into
+  # one block; each still cites the evidence its sentence rests on. Three or
+  # four lines, opening on the angle's claim made concrete for this role.
+  # Skills render immediately after this section.
+  - heading: Summary
+    style: paragraph
+    bullets:
+      - text: <first sentence — the angle's claim, made concrete for this role>
+        ev: ev:0000
+      - text: <second sentence — the strongest proof, in the posting's own terms>
+        ev: ev:0000
+
+  # Experience. company / title / dates must match profile/resume.yaml exactly.
+  # Within each role the angle's proof entries come first. Most recent or most
+  # relevant role: four to six bullets; older roles two or three; anything a
+  # decade back one line or the title alone. Never a colon-led bullet.
+  - heading: Experience
+    entries:
+      - company: <Employer, exactly as in resume.yaml>
+        title: <Title, exactly as in resume.yaml>
+        dates: "<YYYY-MM → YYYY-MM, exactly as in resume.yaml>"
+        location: <City, Region>     # optional
+        bullets:
+          - text: <action verb first; a number only where the ev's confidence permits>
+            ev: ev:0000
+          - text: <a qualitative entry carries its weight with specifics, not a numeral>
+            ev: ev:0000
+
+  # Any further section the field expects — Education, Certifications,
+  # Licences, Projects, Publications — takes the same two shapes: `entries`
+  # (company/title/dates) or `bullets` (text/ev). Every bullet cites an ev.
+  - heading: <Education, Certifications, Licences, Projects …>
+    bullets:
+      - text: <one line>
+        ev: ev:0000

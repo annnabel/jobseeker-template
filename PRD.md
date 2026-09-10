@@ -1047,3 +1047,81 @@ Mechanics, all existing machinery reused:
 nothing contacts an employer or schedules anything; `goals.yaml`,
 `resume.yaml`, and `config.yaml` stay the human's. §2's other non-goals
 (negotiation, networking CRM, web UI) remain non-goals.
+
+## 25. Amendments (v3.12 — 2026-09-10, the top third: skills layout, headline, prose summary)
+
+§21.2 made the angle change the draft in three places, and named the skills
+order as one of them: "the skills order starts with the categories the angle
+rests on". `tailor.md` said the same, and told the tailor to group skills
+under headings in the candidate's field. Nothing downstream could hold that.
+The variant's `skills:` was a flat list, `render.py` joined it into one
+comma-separated line after the last job, and so the ordering the prompt
+spent a paragraph on arrived on the page as a long undifferentiated string —
+the single worst-read section of a resume, in the place a screener looks
+last.
+
+The same pass found two more places where the document lost the argument
+the tailor had built: the summary rendered as bullets, which reads as a list
+of slogans rather than a positioning statement; and there was no headline,
+so the first line a parser matched against the posting's title was the
+candidate's name.
+
+**The skills field takes a grouped shape.** Under either key (`skills:`, or
+`technologies:` as its older name) the list may hold `{category, items}`
+mappings instead of bare strings:
+
+```
+skills:
+  - category: <in the posting's own vocabulary>
+    items: [<Skill>, <Skill>]
+  - category: <the next one>
+    items: [<Skill>]
+```
+
+`render.py` prints one category per line in the order written, and places
+the Skills section **immediately after the summary** when the variant opens
+with one (a variant that opens straight into experience keeps Skills at the
+end). The flat list still works and still renders as one line: a bank too
+thin to group honestly should not pretend otherwise. `bin/lib/variant.py`
+owns the shape (`skill_groups()`), so validate, score and render read it the
+same way by construction (§23.1).
+
+**The gate checks items, never headings.** A category name is layout, not a
+claim, so `validate.py` never lints it — and the prompt says why that is a
+responsibility rather than a loophole: a heading must never name a
+capability its items do not back. What the gate does add: a group with no
+name or no items fails, and a list that mixes grouped and bare items fails.
+It also now matches a skill to its tag **however it is cased or punctuated**
+(`github-actions` in the bank is `GitHub Actions` on the page; `ci-cd` is
+`CI/CD`), folding whitespace, hyphen, underscore and slash and nothing else.
+This closes a friction §19.2's casing rule had opened — the prompt required
+proper casing, the gate required the tag's spelling, and a multi-word tag
+could satisfy neither. A synonym or abbreviation the bank never tagged
+still fails: that is a claim the bank has to make itself. Cover mode applies
+the same tolerance in both directions.
+
+**A headline, optional, gated.** `headline:` is one line under the name —
+the job being applied *for*, as the track's `titles` or the posting itself
+names it. It is a target, not a held title: `resume.yaml` governs every
+employment title, and the headline is not one. Because it cites no evidence
+it may carry no numeral (`validate.py` fails one), and the style gate
+applies to it. Skills stay out of it, where they would escape the linter.
+
+**A prose summary.** A section may declare `style: paragraph`; its bullets
+render as one block of prose, each still citing its `ev:` and each still
+walked by the linter. The tailor uses it for the summary.
+
+**The prompt now budgets the page.** Length and order were unstated, so a
+draft's shape came from the model's mood. `tailor.md` now fixes the render
+order (name, headline, contact, summary, skills, then the sections as
+written), the bullet budget per role by recency and relevance, the page
+count by the track's `seniority`, and which sections lead on a graduate or
+licence-first track. `templates/variant.example.yaml` documents the whole
+shape with placeholders only (§20 holds: no field, no title, no taxonomy).
+
+**What does not change.** Every red line holds. Nothing here licenses a
+claim: every skill item, every summary sentence and every bullet still
+traces to an entry, the headline can assert no number, and coverage still
+rises only from evidence that exists. No gate moves and nothing runs in the
+unattended sweep. `tests/fixtures/variant_good.yaml` keeps the flat
+`technologies:` list and still validates and renders unchanged.

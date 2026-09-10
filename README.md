@@ -35,7 +35,9 @@ Think of it as a very careful assistant that:
   job boards of companies you choose and adds to the same queue overnight.
 - **Drafts for you.** For the roles you pick (`/choose`), it writes a
   tailored resume and cover letter in plain markdown, easy to read on your
-  phone.
+  phone, and laid out the way a screener reads: a headline naming the role, a
+  short summary, your skills grouped under headings in the ad's own words,
+  then the experience that proves it.
 - **Writes for the screening software, then for the human.** Most applications
   are read by keyword-matching software first. A checker reads the job ad,
   works out which words that employer keeps repeating, and reports exactly
