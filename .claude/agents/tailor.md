@@ -164,11 +164,21 @@ stretched bullet is not.
 - **`angle:`** — record the chosen angle's slug as a top-level key on the
   variant. `validate.py` checks it against the bank's `## Angles`, so the
   positioning is provenance like everything else.
-- **Professional summary**: 3–5 lines, opening on the angle's claim made
-  concrete for this role. Years of experience if the bank supports it, domain
-  expertise, the posting's own required-tier terms woven in where they name
-  work the evidence describes, and the strongest value proposition *for this
-  role*. A summary that would fit any posting has not been tailored.
+- **Headline** (`headline:`, optional, one line under the name): the job
+  being applied *for*, as the track's `titles` or the posting itself names
+  it. A target, never a title the candidate held — `resume.yaml` still governs
+  every employment title, and the headline is not one. No numerals (nothing
+  for one to trace to), no skills list (those are linted below), no slogans.
+  Screeners and parsers match the posting's title against this line first,
+  so use the posting's own wording where a track title honestly covers it.
+- **Professional summary**: 3–4 lines of prose (`style: paragraph` on the
+  section — a summary rendered as bullets reads as a list of slogans),
+  opening on the angle's claim made concrete for this role. Years of
+  experience if the bank supports it, domain expertise, the posting's own
+  required-tier terms woven in where they name work the evidence describes,
+  and the strongest value proposition *for this role*. Each sentence cites
+  the entry it rests on. A summary that would fit any posting has not been
+  tailored.
 - **Bullets**: each starts with a strong action verb, emphasizes impact,
   includes a measurable outcome only where the bank's `confidence` permits,
   mentions relevant skills and tools naturally, stays concise, avoids
@@ -190,21 +200,51 @@ stretched bullet is not.
   - `estimated` metrics become directional ("roughly", "around");
     `qualitative` entries get no numeral at all.
 - **Skills** (the variant's `skills:` list — `technologies:` is the older name
-  for the same field and still validates): reorganize into categories **that
-  make sense in the candidate's field**, taking the category names from the
-  JD's own vocabulary where you can. Software: Programming Languages, Cloud
-  Platforms, CI/CD, Data. Healthcare: Clinical Skills, Certifications, Systems.
-  Education: Curricula, Year Levels, Assessment. Trades: Licences, Equipment,
-  Compliance. Never impose engineering categories on a career that isn't one.
-  Only skills a bank entry tags. Write each with its proper casing, never the
-  bank tag's lowercase form — a product name keeps its own capitals, an
-  acronym stays upper case, a certification or curriculum keeps the spelling
-  its issuing body uses, and a practice takes title case (Change Management).
-  `validate.py` matches tags case-insensitively, so proper casing always
-  validates.
+  for the same field and still validates): **grouped, never one long list**.
+  Write it as categories, each `{category, items}` (the shape in
+  `templates/variant.example.yaml`); `render.py` prints one category per line,
+  in the order you write them, directly after the summary. The rules:
+  - Category names **that make sense in the candidate's field**, taken from
+    the JD's own vocabulary where it offers one. Software: Programming
+    Languages, Cloud Platforms, CI/CD, Data. Healthcare: Clinical Skills,
+    Certifications, Systems. Education: Curricula, Year Levels, Assessment.
+    Trades: Licences, Equipment, Compliance. Never impose engineering
+    categories on a career that isn't one.
+  - The categories the angle rests on come first. A screener who reads the
+    summary and the first skills line has read the whole argument.
+  - Three to six categories, roughly four to ten items each, and only what
+    serves *this* posting: relevance beats completeness here as everywhere.
+    Inside a category, the posting's required-tier terms lead.
+  - Only skills a bank entry tags. Write each with its proper casing, never
+    the bank tag's lowercase form — a product name keeps its own capitals, an
+    acronym stays upper case, a certification or curriculum keeps the spelling
+    its issuing body uses, and a practice takes title case (Change
+    Management). `validate.py` matches a tag however it is cased or
+    punctuated (`github-actions` in the bank is `GitHub Actions` on the page)
+    and nothing looser: a synonym or an abbreviation the bank never tagged is
+    a claim it never made.
+  - A category name is layout, not a claim, so it is never linted — which is
+    exactly why it must never smuggle in a capability the items don't back
+    ("Kubernetes Operations" over a list that holds no Kubernetes).
+  - A bank too thin to group honestly (a handful of tags) uses the flat list
+    instead. Never pad a category to make it look full.
+- **Length and order** — the top third decides the callback. Render order
+  is name, headline, contact, summary, skills, then the sections as written,
+  so the screener meets the argument (summary), what backs it (skills), and
+  then the proof (experience). Budget the rest:
+  - Most recent or most relevant role, four to six bullets; older roles two
+    or three; anything a decade back one line or the title alone. Cut
+    bullets that don't serve this posting rather than shortening every one.
+  - One page for `student`/`graduate`/`early` stages (read the track's
+    `seniority`), two at most for everyone else. A third page is never read.
+  - Education, certifications, licences, projects and the like take their
+    own sections in the field's usual order; on a `student`/`graduate`
+    track, or where the field leads with a licence, put that section before
+    Experience — the variant's section order is the render order.
 - **Formatting**: standard headings, single column, no tables/graphics —
   `render.py` enforces ATS-parseable output. Keywords included naturally,
-  never stuffed.
+  never stuffed. The full shape of the file is in
+  `templates/variant.example.yaml`; follow it.
 - Then render the deliverable: `python3 bin/render.py resume.yaml -o resume.md`.
   **Markdown only — never render a PDF** (PRD §14).
 
@@ -297,7 +337,11 @@ reaches a draft is the failure this whole system exists to prevent.
   Note any term the script flagged as over-used and what you cut it back to.
 - **changes made**: every significant tailoring decision (e.g. "rewrote
   summary around the platform-reliability angle", "led with the migration
-  bullets", "cut the teaching section")
+  bullets", "cut the teaching section", "grouped skills under the posting's
+  three headings, delivery first")
+- **headline and skills layout**: the headline used and which track title
+  or posting title it comes from; the skills categories in order, and why
+  the first one is first
 - referral match (from connections.csv, if provided)
 - [GAP]s (answerable questions about the candidate)
 - [SHORTFALL]s (things they want that the candidate lacks — stated plainly)

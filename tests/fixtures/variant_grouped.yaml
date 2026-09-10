@@ -1,0 +1,33 @@
+# A clean variant using the grouped skills shape, a headline, and a prose
+# summary (PRD §25). Every item is tagged by an entry in evidence-bank.md.
+name: Pat Doe
+headline: Platform Engineer
+contact:
+  email: pat@example.com
+  location: Remote
+angle: platform-leader
+skills:
+  - category: Delivery Pipelines
+    items: [CI-CD, GitHub Actions, BuildKit]
+  - category: Infrastructure
+    items: [Docker, Terraform, AWS]
+  - category: Operations
+    items: [Incident Response, On-Call]
+sections:
+  - heading: Summary
+    style: paragraph
+    bullets:
+      - text: "Platform engineer who makes the paved road other teams ship on."
+        ev: ev:0031
+      - text: "Rebuilt the on-call rotation so pages stopped waking people at night."
+        ev: ev:0033
+  - heading: Experience
+    entries:
+      - company: Example Co
+        title: Staff Engineer
+        dates: "2021-03 → 2023-08"
+        bullets:
+          - text: "Cut median deploy time from 45m to 6m (87%) across ~200 deploys/wk."
+            ev: ev:0031
+          - text: "Rebuilt on-call runbooks and coached the rotation to health."
+            ev: ev:0033

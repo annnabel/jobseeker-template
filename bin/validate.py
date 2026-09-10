@@ -31,7 +31,7 @@ sys.path.insert(0, os.path.join(_HERE, "lib"))
 
 import yaml  # noqa: E402
 
-from variant import flat_text, skills as variant_skills  # noqa: E402
+from variant import flat_text, skill_groups, skills as variant_skills  # noqa: E402
 
 # ── evidence bank parsing ──────────────────────────────────────────────────
 
@@ -69,10 +69,25 @@ def parse_bank(path: str) -> dict[str, dict]:
     return entries
 
 
+SEPARATORS = re.compile(r"[\s_/-]+")
+
+
+def norm_tag(text: str) -> str:
+    """One spelling for one skill: lowercase, separators folded to a hyphen.
+
+    The bank tags `github-actions`; the resume prints `GitHub Actions`; a
+    posting says `CI/CD` where the bank says `ci-cd`. Same word, different
+    punctuation — the gate matches the word. It does not fold anything else,
+    so `kubernetes` still does not match `k8s`: a synonym is a claim the bank
+    has to make itself.
+    """
+    return SEPARATORS.sub("-", str(text).strip().lower()).strip("-")
+
+
 def bank_tags(entries: dict[str, dict]) -> set[str]:
     tags: set[str] = set()
     for e in entries.values():
-        tags.update(e["tags"])
+        tags.update(norm_tag(t) for t in e["tags"])
     return tags
 
 
@@ -396,10 +411,39 @@ def validate_resume(
                 f"(declared: {', '.join(sorted(angles)) or 'none'})"
             )
 
+    # The headline is the target, never a held title (PRD §25). It cites no
+    # evidence, so it may carry no numeral — there is nothing for one to trace
+    # to — and the style gate applies to it as to any other line.
+    headline = str(variant.get("headline", "") or "").strip()
+    if headline:
+        errors.extend(style_errors(headline, banned, "headline", banned_regex))
+        nums = numerals(headline)
+        if nums:
+            errors.append(
+                f"headline asserts a numeral ({', '.join(nums)}) which no evidence "
+                f"entry can back; keep numbers in bullets that cite an ev: {headline[:60]!r}"
+            )
+
     # A skill in the skills list must be tagged by some evidence entry.
+    # Grouped or flat, the items are the claims; a category name is layout.
     for skill in variant_skills(variant):
-        if skill.strip().lower() not in tags:
+        if norm_tag(skill) not in tags:
             errors.append(f"skill {skill!r} is claimed but no evidence entry tags it")
+    for key in ("skills", "technologies"):
+        for entry in variant.get(key, []) or []:
+            if not isinstance(entry, dict):
+                continue
+            category = str(entry.get("category", "") or "").strip()
+            items = [i for i in (entry.get("items", []) or []) if str(i).strip()]
+            if not category:
+                errors.append(f"[{key}] a skills group has no category name: {entry!r}")
+            if not items:
+                errors.append(f"[{key}] skills group {category!r} lists no items")
+    if len(skill_groups(variant)) > 1 and any(not c for c, _ in skill_groups(variant)):
+        errors.append(
+            "skills mix grouped and ungrouped items; give every item a category "
+            "or none of them"
+        )
 
     # Canonical facts must match resume.yaml if present.
     if resume_path and os.path.exists(resume_path):
@@ -478,12 +522,16 @@ def validate_cover(
                     f"cover mentions employer {emp!r} that is not in the validated variant"
                 )
 
-        # Skills mentioned in the cover must be in the variant.
+        # Skills mentioned in the cover must be in the variant. A tag matches
+        # however it is punctuated (see norm_tag), on both sides.
         for skill in bank_tags(bank):
             if len(skill) < 3:
                 continue
-            if re.search(rf"\b{re.escape(skill)}\b", cover, re.IGNORECASE) and not re.search(
-                rf"\b{re.escape(skill)}\b", vtext, re.IGNORECASE
+            pattern = r"(?<![a-z0-9])" + r"[\s_/-]*".join(
+                re.escape(part) for part in skill.split("-")
+            ) + r"(?![a-z0-9])"
+            if re.search(pattern, cover, re.IGNORECASE) and not re.search(
+                pattern, vtext, re.IGNORECASE
             ):
                 errors.append(
                     f"cover mentions skill {skill!r} that is not in the validated variant"
