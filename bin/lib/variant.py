@@ -78,6 +78,21 @@ def skill_groups(variant: dict) -> list[tuple[str, list[str]]]:
     return [(name, items) for name, items in groups if items]
 
 
+def variant_angle(variant: dict) -> str:
+    """The angle a variant declares, lower-cased, under either accepted key.
+
+    `angle:` is the current key; `label:` is what early variants called the
+    same thing. Empty string when the variant declares none. validate.py
+    gates on it and tracker.py groups callback rates by it, so both read it
+    here and cannot drift apart.
+    """
+    for key in ("angle", "label"):
+        value = variant.get(key)
+        if value and str(value).strip():
+            return str(value).strip().lower()
+    return ""
+
+
 def skills(variant: dict) -> list[str]:
     """The variant's skills, flattened, under either accepted key (PRD §19).
 

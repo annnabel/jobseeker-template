@@ -245,7 +245,8 @@ def render(variant_path: str, out_path: str, fmt: str | None = None) -> None:
         import typst  # lazy: only needed to produce the PDF
     except ImportError as exc:  # pragma: no cover
         raise SystemExit(
-            "typst is not installed. Run: pip install typst  (see optional/sweep/README.md)"
+            "typst is not installed. Run: pip install typst  "
+            "(see README.md, 'For technical users')"
         ) from exc
 
     with tempfile.NamedTemporaryFile("w", suffix=".typ", delete=False, encoding="utf-8") as tf:

@@ -1,8 +1,8 @@
-"""Shared data models for Jobseeker.
+"""Shared data models for the optional sweep.
 
-Deliberately small. These types are the contract between the fetch layer,
-the seen-state index, and the tracker. Nothing here talks to a model, and
-nothing here reads personal data — that all lives in the private instance.
+Deliberately small. These types are the contract between the fetch layer
+and the seen-state index. Nothing here talks to a model, and nothing here
+reads personal data — that all lives in the private instance.
 """
 from __future__ import annotations
 
@@ -95,5 +95,5 @@ class SeenEntry(BaseModel):
     fingerprint: str
     company: str
     title: str
-    disposition: str = Field(description="killed | shortlisted (legacy: queued)")
+    disposition: str = Field(description="killed | shortlisted | near_miss (legacy: queued)")
     date: str = ""

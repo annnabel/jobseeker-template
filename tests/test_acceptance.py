@@ -462,11 +462,21 @@ def test_tracker_stats(tmp_path):
             f"company: {slug}\ntitle: Role\ndate: 2026-07-01\napplied: 2026-07-01\n"
             f"status: {status}\ntrack: {track}\n"
         )
+    # The angle breakdown reads the tailored draft the skills actually write
+    # (resume.yaml); a draft from before the rename (variant.yaml) still counts.
+    (tmp_path / "applied" / "2026-07-01_a_co" / "resume.yaml").write_text(
+        "angle: platform-leader\n"
+    )
+    (tmp_path / "applied" / "2026-07-01_b_co" / "variant.yaml").write_text(
+        "label: cost-optimizer\n"
+    )
     r = run("tracker.py", "--root", str(tmp_path), "--stats", "--today", "2026-07-05")
     assert r.returncode == 0, r.stderr
     assert "applications   3" in r.stdout
     assert "callbacks      1/3 (33%)" in r.stdout
     assert "track-one" in r.stdout and "track-two" in r.stdout
+    assert "by angle" in r.stdout
+    assert "platform-leader" in r.stdout and "cost-optimizer" in r.stdout
     assert not (tmp_path / "tracker.csv").exists()  # --stats writes nothing
 
 

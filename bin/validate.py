@@ -31,7 +31,12 @@ sys.path.insert(0, os.path.join(_HERE, "lib"))
 
 import yaml  # noqa: E402
 
-from variant import flat_text, skill_groups, skills as variant_skills  # noqa: E402
+from variant import (  # noqa: E402
+    flat_text,
+    skill_groups,
+    skills as variant_skills,
+    variant_angle,
+)
 
 # ── evidence bank parsing ──────────────────────────────────────────────────
 
@@ -161,19 +166,6 @@ def parse_angles(path: str) -> dict[str, dict]:
     return angles
 
 
-def variant_angle(variant: dict) -> str:
-    """The angle a variant declares, under either accepted key.
-
-    `angle:` is the current key; `label:` is what early variants called the
-    same thing.
-    """
-    for key in ("angle", "label"):
-        value = variant.get(key)
-        if value and str(value).strip():
-            return str(value).strip().lower()
-    return ""
-
-
 CONFIDENCE_VALUES = ("measured", "estimated", "qualitative")
 NO_SOURCE = {"", "n/a", "na", "none", "-", "tbd", "?"}
 
@@ -284,7 +276,8 @@ def lint_bank(
     if not angles:
         errors.append("bank declares no `## Angles`; every variant is then unpositioned")
 
-    for ev, slugs in entry_angles(entries).items():
+    cited = entry_angles(entries)
+    for ev, slugs in cited.items():
         for slug in slugs:
             if slug not in angles:
                 errors.append(f"{ev} claims angle {slug!r} which is not declared in `## Angles`")
@@ -295,7 +288,7 @@ def lint_bank(
         for ev in angle["proof"]:
             if ev not in entries:
                 errors.append(f"angle {slug!r} cites {ev} which is not in the bank")
-        proven_by = [ev for ev, s in entry_angles(entries).items() if slug in s]
+        proven_by = [ev for ev, s in cited.items() if slug in s]
         support = set(angle["proof"]) | set(proven_by)
         if len(support) < 2:
             errors.append(

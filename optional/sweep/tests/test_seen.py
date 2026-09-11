@@ -258,8 +258,10 @@ def test_audit_date_ok_when_shortlist_exists(tmp_path):
 def test_fetch_warns_when_seen_index_empty(tmp_path):
     profile = tmp_path / "profile"
     profile.mkdir()
+    # An ATS the registry doesn't know fails inside the per-target block the
+    # same way a dead board does, without this test dialling a real host.
     (profile / "targets.yaml").write_text(
-        "companies:\n  - ats: greenhouse\n    slug: nonexistent-board-xyz\n",
+        "companies:\n  - ats: no-such-ats\n    slug: example-co\n",
         encoding="utf-8",
     )
     r = run("fetch.py", "--dry-run", "--root", str(tmp_path))
@@ -268,3 +270,4 @@ def test_fetch_warns_when_seen_index_empty(tmp_path):
     # sweep cannot mistake a broken environment for a quiet night.
     assert r.returncode == 2, r.stderr
     assert "all 1 adapter fetch(es) failed" in r.stderr
+    assert "unknown ATS adapter" in r.stderr

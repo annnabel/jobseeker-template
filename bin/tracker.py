@@ -31,7 +31,13 @@ import os
 import sys
 from datetime import date, datetime
 
-import yaml
+# Make lib/ importable whether run from repo root or elsewhere.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_HERE, "lib"))
+
+import yaml  # noqa: E402
+
+from variant import variant_angle  # noqa: E402
 
 COLUMNS = [
     "date",
@@ -109,26 +115,27 @@ def load_config(root: str) -> dict:
         return yaml.safe_load(fh) or {}
 
 
-def _variant_angle(entry_dir: str) -> str:
-    """The angle the entry's variant.yaml was positioned on, else "".
+# The tailored draft in a queue/ready/ or applied/ directory. The tailor
+# writes `resume.yaml`; `variant.yaml` is what drafts from before the rename
+# were called, and a private copy may still hold some.
+VARIANT_FILES = ("resume.yaml", "variant.yaml")
 
-    `angle:` is the current key; `label:` the older spelling. Read
-    only for --stats; tolerant of a missing or unparseable variant.
+
+def _variant_angle(entry_dir: str) -> str:
+    """The angle the entry's tailored draft was positioned on, else "".
+
+    Read only for --stats; tolerant of a missing or unparseable draft.
     """
-    path = os.path.join(entry_dir, "variant.yaml")
-    if not os.path.exists(path):
-        return ""
-    try:
-        with open(path, encoding="utf-8") as fh:
-            variant = yaml.safe_load(fh) or {}
-    except yaml.YAMLError:
-        return ""
-    if not isinstance(variant, dict):
-        return ""
-    for key in ("angle", "label"):
-        value = variant.get(key)
-        if value and str(value).strip():
-            return str(value).strip().lower()
+    for name in VARIANT_FILES:
+        path = os.path.join(entry_dir, name)
+        if not os.path.exists(path):
+            continue
+        try:
+            with open(path, encoding="utf-8") as fh:
+                variant = yaml.safe_load(fh) or {}
+        except yaml.YAMLError:
+            return ""
+        return variant_angle(variant) if isinstance(variant, dict) else ""
     return ""
 
 

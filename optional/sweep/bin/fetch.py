@@ -4,9 +4,9 @@
     fetch.py [--source ats|all] [--dry-run]
 
 Reads profile/targets.yaml -> lib/sources/<ats>.py. Lives under optional/sweep/;
-run it from the repo root: python3 optional/sweep/bin/fetch.py Skips postings outside the
-location filter, outside profile/goals.yaml's optional role_filter, or last
-updated more than --max-age-days ago (default 30). Dedupes against the union of
+run it from the repo root: `python3 optional/sweep/bin/fetch.py`. Skips postings
+outside the location filter, outside profile/goals.yaml's optional role_filter,
+or last updated more than --max-age-days ago (default 30). Dedupes against the union of
 state/seen/*.jsonl. Writes one JSON file per posting under queue/raw/.
 Never calls a model. Never writes seen-state (that is seen.py, at terminal
 disposition only). One broken adapter logs a warning and the sweep continues.
@@ -190,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
             "warning: seen index is empty (state/seen/ has no shards) — nothing "
             "from prior sweeps will be deduped. Expected on the first run only; "
             "otherwise a past sweep skipped its mark step. Run "
-            "`bin/seen.py audit` to verify.",
+            "`python3 optional/sweep/bin/seen.py audit` to verify.",
             file=sys.stderr,
         )
 
