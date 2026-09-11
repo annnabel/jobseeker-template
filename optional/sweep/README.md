@@ -95,8 +95,8 @@ companies; `/apply` does that, with you present, in your normal environment.
 ```bash
 #!/bin/bash
 set -euo pipefail
-pip install --break-system-packages typst pyyaml httpx pydantic
-python3 -c "import typst, yaml, httpx, pydantic"
+pip install --break-system-packages pyyaml httpx pydantic
+python3 -c "import yaml, httpx, pydantic"
 ```
 
 No `|| true`: a swallowed install failure becomes a silent broken morning.

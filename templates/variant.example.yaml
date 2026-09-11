@@ -1,6 +1,9 @@
-# resume.yaml — the shape of one tailored resume.
+# variant.example.yaml — the shape of one tailored resume ("variant" is the
+# scripts' word for it: `--variant`, bin/lib/variant.py).
 #
-# The tailor writes one of these per drafted role into queue/ready/<slug>/, then
+# The tailor writes one of these per drafted role into queue/ready/<slug>/ as
+# `resume.yaml` (not to be confused with profile/resume.yaml, the canonical
+# facts every draft is checked against, templated by resume.example.yaml). Then
 # `python3 bin/render.py resume.yaml -o resume.md` turns it into the document
 # and `python3 bin/validate.py resume.yaml` gates every claim in it. This file
 # is the reference for that shape. EVERY VALUE IS A PLACEHOLDER — the field,
