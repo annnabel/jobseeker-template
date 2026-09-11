@@ -1,3 +1,9 @@
+> **Archived.** This is the original design document, kept for the reasoning
+> behind the system and its amendment history. It is not maintained and is not
+> read by any skill. The current operating rules are `CLAUDE.md`; the current
+> shape of the system is `docs/HOW-IT-WORKS.md`. Where this document and those
+> two disagree, they win.
+
 # Jobseeker — Product Requirements Document (v3)
 
 A personal job-search pipeline. The human pastes in roles they found (or an

@@ -1,4 +1,4 @@
-<!-- The `## Angles` block of profile/evidence-bank.md. PRD §21.
+<!-- The `## Angles` block of profile/evidence-bank.md.
 
      An ANGLE is a positioning stance: one claim about what you are *for*,
      proved by at least two evidence entries, aimed at a track. Do not

@@ -10,7 +10,7 @@ violation, printing every violation found (not just the first).
 
 This catches invention: a bullet with no evidence ID, a metric that traces to
 an estimate, a technology with no backing. It does NOT catch *stretching* — a
-bullet that cites ev:0031 but overstates what ev:0031 says. That is Gate 2's
+bullet that cites ev:0031 but overstates what ev:0031 says. That is the walkthrough's
 job. See PRD §1/G6. Do not trust the green check to mean more than it does.
 
 It also enforces the style gate (PRD §14): banned substrings — em dashes and

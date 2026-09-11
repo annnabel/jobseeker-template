@@ -12,20 +12,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      # Dev tooling is pinned on purpose. An unpinned `pip install ruff`
-      # made every CI run install whatever ruff had shipped that day, so the
-      # lint step changed meaning without a commit. Bump these deliberately.
+      # Dev tooling is pinned on purpose: an unpinned ruff changed the lint
+      # step's meaning without a commit. Bump these deliberately.
       - name: Install dependencies
         run: pip install pyyaml httpx pydantic "pytest==9.1.1" "ruff==0.16.3"
       - name: Lint
-        run: ruff check --output-format=github bin/ tests/
-      - name: Acceptance tests
-        run: python3 -m pytest tests/ -q
+        run: ruff check --output-format=github bin/ tests/ optional/
+      - name: Tests (core + optional sweep)
+        run: python3 -m pytest -q
 
       # The template must never carry anyone's career history: every copy
       # inherits what is committed here. A private instance is *supposed* to
       # have a full profile/, so this step is scoped to the template repo and
-      # never fails in a friend's fork. (PRD §19.2)
+      # never fails in a friend's copy.
       - name: Template carries no personal data
         if: endsWith(github.repository, '/jobseeker-template')
         run: python3 bin/check_template_clean.py

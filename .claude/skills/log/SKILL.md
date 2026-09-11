@@ -1,47 +1,39 @@
 ---
 name: log
-description: Record a status change in ~2 minutes. Moves a queued role to applied/ after the human submits, or bumps an application's status (reply, screen, onsite, offer, rejected). Then regenerates tracker.csv. Never hand-edit tracker.csv.
+description: Record a status change in about two minutes. "I applied to X" moves the draft to applied/; "X replied / screen / onsite / offer / rejected" bumps its status. Regenerates the tracker. Never hand-edit tracker.csv.
 ---
 
-# /log — status updates (PRD §8.4, G4)
+# /log — status updates
 
-The tracker is derived, never maintained. You never hand-edit `tracker.csv`; you
-edit `meta.yaml` and regenerate. A status change costs one `/log` line
-(~2 min/week). Silence needs no input — the ghosted timer handles it (G4).
+The tracker is derived, never maintained. You edit a role's `meta.yaml` and
+regenerate. Silence needs no input: an application quiet past
+`tracker.ghost_days` is marked ghosted automatically.
 
-## Two things /log does
+## "I applied to <role>"
 
-### 1. "I applied to <role>"
-The human submitted in their own browser. Promote the queued draft:
-- `git mv queue/ready/<slug>/ applied/<date>_<slug>/`
-- In `applied/<date>_<slug>/meta.yaml` set:
-  `status: applied` and `applied: <today>` (and `date:` if unset).
-- Regenerate and commit (below). Everything lives on `main`, so the commit is
-  the record — push it (PRD §6, §18).
-- Mention once: if the application stays silent past `tracker.followup_days`
-  (default 7), the tracker's `next_action` will nudge them to send a short
-  follow-up — theirs to write and send, by hand.
+The human submitted in their own browser. Promote the draft:
 
-### 2. "<role> → <event>"
-A positive event happened. Set `status:` in the role's `meta.yaml` to one of:
-`reply`, `screen`, `onsite`, `offer`, `rejected`, `withdrawn`.
-Only positive events need logging. Forgetting degrades to `ghosted`, which is
-almost always just true.
+- `git mv queue/ready/<slug>/ applied/<YYYY-MM-DD>_<slug>/`
+- In its `meta.yaml` set `status: applied` and `applied: <today>` (and
+  `date:` if unset).
+- Mention once: if it stays silent past `tracker.followup_days` (default 7)
+  the tracker will nudge them to send a short follow-up, theirs to write.
 
-On `reply`, `screen`, or `onsite`, mention once that `/prep` (a fresh
-session) builds interview prep for this role from the evidence bank and what
-the submitted draft actually claimed.
+## "<role> → <event>"
+
+Set `status:` in the role's `meta.yaml` to one of `reply`, `screen`,
+`onsite`, `offer`, `rejected`, `withdrawn`. On `reply`, `screen` or `onsite`,
+mention once that `/prep` builds interview prep for it.
 
 ## Always, after any change
+
 ```
-python3 bin/tracker.py            # applied/ + queue/ready/ -> tracker.csv
-git add applied/ queue/ tracker.csv
-git commit -m "log: <role> -> <status>"
+python3 bin/tracker.py
+git add -A && git commit -q -m "log: <role> -> <status>" && git push -q origin main \
+  || (git pull -q --rebase origin main && git push -q origin main)
 ```
-(The `git add` covers the moved directory, the edited `meta.yaml`, and the
-regenerated `tracker.csv` — they all live under those paths.)
-`tracker.csv` must never appear in a hand-authored commit — only as
-tracker.py's output. Delete it, regenerate, and you get a byte-identical file.
+
+Don't narrate the saving. One line back: the new status and the next thing.
 
 ## Never
 - Never hand-edit `tracker.csv`.

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""tracker.py — regenerate tracker.csv from meta.yaml files. PRD §8.4, §23, G4.
+"""tracker.py — regenerate tracker.csv from meta.yaml files.
 
     tracker.py [--root .] [-o tracker.csv]
     tracker.py --stats [--root .]
 
-The tracker is DERIVED, never maintained (principle 3.2). Delete tracker.csv,
+The tracker is DERIVED, never maintained. Delete tracker.csv,
 regenerate, and get a byte-identical file. Scans applied/*/meta.yaml and
 queue/ready/*/meta.yaml. Derives days_since_applied, status (auto-ghosted after
 config.tracker.ghost_days silent days), next_action, funnel_stage.
 
-Two derived views serve the callback loop (PRD §23):
+Two derived views serve the callback loop:
   * An application silent past `config.tracker.followup_days` (default 7) gets
     next_action "send a follow-up" — a nudge to the HUMAN, who follows up in
     their own words, by hand. Nothing here contacts anyone.
@@ -17,10 +17,10 @@ Two derived views serve the callback loop (PRD §23):
     broken down by goals.yaml track, by source, and by the angle each variant
     was positioned on — so the human can see which argument actually earns
     callbacks. It reads the same meta.yaml files, writes nothing, and reports;
-    retuning goals or angles stays the human's call (red line 7).
+    retuning goals or angles stays the human's call.
 
 No Google Sheets push — GitHub renders a committed CSV as a sortable table on
-desktop and mobile for free (PRD §8.4).
+desktop and mobile for free.
 """
 from __future__ import annotations
 
@@ -61,9 +61,9 @@ FUNNEL = {
 }
 
 NEXT_ACTION = {
-    "shortlisted": "pick keeps with /choose",
-    "kept": "run /tailor",
-    "queued": "review at Gate 2",
+    "shortlisted": "run /apply to draft it",
+    "kept": "run /apply to draft it",
+    "queued": "apply by hand, then /log",
     "applied": "wait",
     "ghosted": "follow up or drop",
     "reply": "schedule screen; run /prep",
@@ -112,7 +112,7 @@ def load_config(root: str) -> dict:
 def _variant_angle(entry_dir: str) -> str:
     """The angle the entry's variant.yaml was positioned on, else "".
 
-    `angle:` is the current key; `label:` the older spelling (PRD §21). Read
+    `angle:` is the current key; `label:` the older spelling. Read
     only for --stats; tolerant of a missing or unparseable variant.
     """
     path = os.path.join(entry_dir, "variant.yaml")
@@ -184,7 +184,7 @@ def collect_rows(root: str, ghost_days: int, today: date, followup_days: int = 0
                     "angle": _variant_angle(os.path.dirname(meta_path)),
                 }
             )
-    # Deterministic order so regeneration is byte-identical (G4 / Phase 7 test).
+    # Deterministic order so regeneration is byte-identical.
     rows.sort(key=lambda r: (str(r["date"]), r["dir"]))
     return rows
 

@@ -148,7 +148,7 @@ def test_audit_passes_when_swept_entry_is_seen(tmp_path):
 
 
 def test_audit_ignores_manual_finds(tmp_path):
-    # /add postings have no `swept:` and no structured triage — not sweepable,
+    # /apply postings have no `swept:` and no structured triage — not sweepable,
     # so the audit must not demand seen records for them.
     d = tmp_path / "queue" / "ready" / "manual-role"
     d.mkdir(parents=True)
@@ -162,7 +162,7 @@ def test_audit_ignores_manual_finds(tmp_path):
 
 
 def test_audit_ignores_manual_finds_with_structured_triage(tmp_path):
-    # /add queues manual finds to queue/shortlist with a real triage block
+    # /apply queues manual finds to queue/shortlist with a real triage block
     # (the fit read). `source: manual` alone must exempt them — a structured
     # triage dict is not evidence of a sweep.
     d = tmp_path / "queue" / "shortlist" / "pasted-role"

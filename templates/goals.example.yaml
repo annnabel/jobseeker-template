@@ -1,4 +1,4 @@
-# goals.yaml — where you want to GO. PRD §19.
+# goals.yaml — where you want to GO.
 # Copy to profile/goals.yaml. `/setup` fills this in first, before the
 # evidence bank, because your goal decides which evidence is worth digging for.
 #
@@ -72,23 +72,5 @@ tracks:
   #   must_have: []
   #   avoid: []
 
-# role_filter (optional, OFF by default) — case-insensitive regexes applied at
-# FETCH time, before triage ever sees a posting. Same kind of bookkeeping as
-# targets.yaml's `location_filter`: it scopes which postings enter the queue,
-# it never ranks them. A posting is kept if any pattern matches its title;
-# a posting with no title is always kept.
-#
-# The trade, stated plainly: this is the only narrowing in the pipeline that
-# can silently drop a good role a keyword rule misjudges — a posting whose
-# title says nothing about the work it actually describes. Triage would have
-# caught it; a regex will not. Leave it out unless you are targeting big
-# boards where the volume is real (a large employer can list hundreds of roles
-# across every function, and the most expensive way to reject a role in a
-# department you'd never work in is to score it with a model first). The sweep
-# reports how many postings it dropped, every run.
-#
-# A good starting set is the union of your tracks' `titles` above.
-#
-# role_filter:
-#   - "<title word>"
-#   - "<another variant>"
+# (If you switch on the optional sweep, an opt-in `role_filter:` list can be
+# added here; see optional/sweep/README.md.)

@@ -1,4 +1,4 @@
-<!-- cover.md template. PRD §8.6. Must pass validate.py --cover, including the
+<!-- cover.md template. Must pass validate.py --cover, including the
      style gate: no em dashes, none of the banned phrasing in config.yaml ->
      style.banned. Constrain claims, not voice. Numerals, employers, and
      technologies must trace to the validated variant (the hook's company facts

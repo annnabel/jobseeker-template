@@ -203,7 +203,7 @@ def cmd_mark(args: argparse.Namespace) -> int:
 def _swept_meta_dirs(root: str):
     """Yield (dir, meta) for queue entries that came from a sweep.
 
-    Manual finds (/add writes `source: manual`) are exempt — they were never
+    Manual finds (/apply writes `source: manual`) are exempt — they were never
     fetched, so seen-state doesn't apply to them. Of the rest, a meta.yaml
     counts as swept when it has a `swept:` date or a structured triage score.
     """
@@ -260,7 +260,7 @@ def cmd_audit(args: argparse.Namespace) -> int:
     # day's shard must still be recorded somewhere durable — queue/shortlist,
     # queue/ready, or applied/. Both dispositions name a role the sweep queued
     # to queue/shortlist (a survivor, or a sub-threshold near miss surfaced for
-    # Gate 1); only `killed` roles are queued nowhere. A row with no directory
+    # the human's pick); only `killed` roles are queued nowhere. A row with no directory
     # means the run marked the role seen and then crashed before writing it
     # anywhere: seen, never queued, gone silently (PRD §6) — exactly what
     # mark-last exists to prevent.
