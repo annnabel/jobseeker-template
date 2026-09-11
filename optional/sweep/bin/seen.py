@@ -254,7 +254,8 @@ def cmd_audit(args: argparse.Namespace) -> int:
             problems += 1
             print(f"MISS  {rel}: swept role has no seen record — the next sweep "
                   "WILL re-triage it. "
-                  f"Fix: python3 bin/seen.py mark --disposition shortlisted {rel}")
+                  f"Fix: python3 optional/sweep/bin/seen.py mark "
+                  f"--disposition shortlisted {rel}")
 
     # Reverse check (--date): every `shortlisted` or `near_miss` row in that
     # day's shard must still be recorded somewhere durable — queue/shortlist,

@@ -19,18 +19,14 @@ import argparse
 import os
 import sys
 
-# Files that legitimately live in the template's otherwise-empty data dirs.
-ALLOWED = {
-    "profile/README.md",
-    "profile/.gitkeep",
-    "profile/companies/.gitkeep",
-    "profile/intake/.gitkeep",
-    "queue/.gitkeep",
-    "state/seen/.gitkeep",
-    "applied/.gitkeep",
-}
+# Files that legitimately live in the template's otherwise-empty data dirs:
+# the explanatory README, and the `.gitkeep` placeholders that hold an empty
+# directory in git. Matching placeholders by name, rather than listing each
+# path, means adding or dropping one never has to be mirrored here.
+ALLOWED = {"profile/README.md"}
+PLACEHOLDER = ".gitkeep"
 
-# Directories that must contain nothing but ALLOWED entries.
+# Directories that must contain nothing but ALLOWED entries and placeholders.
 GUARDED_DIRS = ["profile", "queue", "state", "applied"]
 
 TRACKER_HEADER = "date,company,title,status,days_since_applied,funnel_stage,next_action,url,dir"
@@ -46,7 +42,7 @@ def violations(root: str) -> list[str]:
         for dirpath, _dirnames, filenames in os.walk(base):
             for name in filenames:
                 rel = os.path.relpath(os.path.join(dirpath, name), root).replace(os.sep, "/")
-                if rel not in ALLOWED:
+                if name != PLACEHOLDER and rel not in ALLOWED:
                     found.append(f"personal data in the template: {rel}")
 
     tracker = os.path.join(root, "tracker.csv")
