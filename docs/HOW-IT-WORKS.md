@@ -3,7 +3,7 @@
 ## The loop
 
 ```
-/setup   once: interview → profile/ (goals, evidence bank, angles, facts, voice, config)
+/setup   once: interview → profile/ (goals, facts, evidence bank, angles, voice, config)
 /apply   paste an ad → honest fit read → "draft it?" → tailored resume + cover,
          walked through together → saved as a draft
    ↓     the human applies by hand, in their own browser
@@ -22,7 +22,7 @@ answered and `[SHORTFALL]`s get read aloud).
 |---|---|---|
 | `profile/goals.yaml` | Career tracks: where the user wants to go | `/setup`, the user |
 | `profile/evidence-bank.md` | Every true accomplishment (`### ev:NNNN`), `## Angles`, `## Shortfalls` | `/setup`, gap answers |
-| `profile/resume.yaml` | Canonical employers, titles, dates | `/setup` |
+| `profile/resume.yaml` | Canonical facts: name and contact header, employers, education, each title and date exactly once | `/setup` |
 | `profile/voice.md` | How the user writes | `/setup` |
 | `profile/config.yaml` | Constraints, cover length, style bans, tracker timers | `/setup` |
 | `profile/companies/<slug>.md` | The user's own lines on a company, plus dated researched facts with source URLs | the user, `/apply`, `/prep` |
@@ -63,8 +63,13 @@ hand submit · `applied` · `reply` · `screen` · `onsite` · `offer` ·
   profile/companies/<slug>.md]` fails a numeral, employer or skill in the
   letter that the validated resume doesn't carry (the note's own numerals are
   allowed in the hook).
-- `python3 bin/validate.py --lint-bank` fails an angle with fewer than two
-  proof entries, an angle with no claim, or an entry citing an undeclared angle.
+- `python3 bin/validate.py --lint-bank` fails an entry with a bad or missing
+  `confidence`, a `measured` entry with no `source`, an untagged entry, a
+  duplicate ID, a `role` naming no employer or institution in `resume.yaml`,
+  an empty `## Shortfalls`, an angle with fewer than two proof entries, an
+  angle with no claim, or an entry citing an undeclared angle.
+  `--entries-only` skips the angle and shortfall checks; `/setup` runs it
+  after every batch of entries, before angles exist.
 - `python3 bin/ats_score.py --jd jd.md --variant resume.yaml --cover cover.md`
   computes keyword coverage from the posting's own repeated terms, tiered by
   where the posting puts them. Its numbers are the only coverage numbers
@@ -87,5 +92,8 @@ both. The sweep calls only triage.
 
 ## Git, hidden
 
-Every skill ends by committing and pushing to `main` so the repo stays the
-only database. The user is never asked to know what that means.
+Every skill ends with `python3 bin/save.py "<message>"`, which commits and
+pushes so the repo stays the only database. It rebases once on a rejected
+push, never merges or rewrites history, and refuses to run inside the
+shared template (its `--guard` is `/setup`'s first step). The user is never
+asked to know what any of that means.

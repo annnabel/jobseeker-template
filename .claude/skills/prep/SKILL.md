@@ -60,8 +60,7 @@ Rehearse the questions and stories with the human; their edits in their own
 words beat your phrasing. Then:
 
 ```
-git add -A && git commit -q -m "prep: <company> · <title>" && git push -q origin main \
-  || (git pull -q --rebase origin main && git push -q origin main)
+python3 bin/save.py "prep: <company> · <title>"
 ```
 
 Close by naming what `/log` records after the interview (`screen`, `onsite`,
