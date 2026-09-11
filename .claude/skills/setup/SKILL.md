@@ -1,227 +1,131 @@
 ---
 name: setup
-description: Onboard a new user. Interviews them in small batches to build the evidence bank (the master resume), then their voice and constraints, and offers the optional nightly sweep. This is the whole onboarding — no code editing, no terminal, no PRD reading.
+description: Onboard a new user. Interviews them in small batches to build their goals, evidence bank, angles, voice and constraints. Re-run any time to add evidence or change goals. No code editing, no terminal, no git talk.
 ---
 
-# /setup — the whole onboarding (PRD §11 Phase 2, §12)
+# /setup — the whole onboarding
 
-You are turning a fresh private instance into a working system. The user has a
-browser and a phone, nothing else. No code edits. Your job is to fill
-`profile/`. Do it by **interview, in batches of 3–5 questions — never a wall**.
+You are turning a fresh private copy into a working system. The user has a
+browser and a phone, nothing else. Fill `profile/` by **interview, in batches
+of three to five questions, never a wall.** Save after each section (step 8)
+without mentioning it.
 
-**You do not know this person.** Do not assume their field, their seniority, or
-that their work produces numbers. The interview is the same shape for a
-graduate nurse, a career-changing teacher, and a staff engineer; the content is
-entirely theirs. Ask, never fill in.
+**You do not know this person.** Do not assume their field, seniority, or that
+their work produces numbers. Ask, never fill in. Every value in the templates
+is an angle-bracketed placeholder, not a suggestion.
 
-## What you're building (in order)
+If `profile/` is already populated, ask what they want to add or change and
+go straight to that section.
 
-### 1. `profile/goals.yaml` — where they want to GO (20 minutes, do it first)
-Copy `templates/goals.example.yaml`. **Every value in it is an angle-bracketed
-placeholder** — there is no default track, no default field, no default
-seniority, and none of it is a suggestion. Replace all of them with the user's
-own words; never leave one standing, and never fill one in on their behalf.
+## 1 — `profile/goals.yaml`: where they want to GO (do this first)
 
-This comes **before** the evidence bank, and the order is load-bearing: the
-goal decides which evidence is worth digging for, and without it triage can
-only recognise the job they already have.
-
-Interview for one to three **tracks**. Per track: `label` (how they'd describe
-the job to a friend), `titles` (the title words employers actually use — push
-for the variants, not just the tidy one), `seniority` **for them** (student,
-graduate, early, mid, senior, lead, exec, returner), `why` in one honest line,
-and `must_have` / `avoid`.
+Copy `templates/goals.example.yaml`. Interview for one to three **tracks**.
+Per track: `label` (the job as they'd describe it to a friend), `titles` (the
+title words employers actually use, including the ugly variants),
+`seniority` for them (student, graduate, early, mid, senior, lead, exec,
+returner), `why` in one honest line, `must_have` / `avoid`.
 
 Then the question that decides everything downstream: **is this track a
 pivot?** Have they done this kind of work before, or are they moving into it?
 
-- **Not a pivot** → `pivot: false`. Their history is the support.
-- **A pivot** → `pivot: true`, and you must fill in `transferable` (which of
-  their experience genuinely carries across, in their words) and `known_gaps`
-  (what they plainly don't have yet). Both are honest-answer fields: a padded
-  `transferable` produces a resume that wins an interview they can't survive,
-  which is the one outcome this system exists to prevent. Get the real answer,
-  write it down, and let the gaps be gaps.
+- Not a pivot → `pivot: false`.
+- A pivot → `pivot: true`, and fill `transferable` (which of their experience
+  genuinely carries across, in their words) and `known_gaps` (what they
+  plainly don't have yet). Both are honest-answer fields. A padded
+  `transferable` produces a resume that wins an interview they can't survive.
 
-Leave `supporting_angles` empty for now — you fill it in after the bank exists
-(step 3). Leave `role_filter` out entirely unless they ask for it; it is opt-in
-and it can drop good roles.
+Leave `supporting_angles` empty until step 3.
 
-Commit this before moving on.
+## 2 — `profile/evidence-bank.md`: the master resume (the long one)
 
-### 2. `profile/evidence-bank.md` — the master resume (the long one)
-This is the source of truth every resume is capped by. Exhaustive by design.
-Interview the user story by story, **steered by the tracks you just wrote**: on
-a pivot, dig hardest at the experience their `transferable` line points to,
-because that is the material every draft will lead with and it is usually
-buried in a job that was called something else.
+The source of truth every draft is capped by. Interview story by story,
+steered by the tracks: on a pivot, dig hardest at the experience the
+`transferable` line points to; it is usually buried in a job called something
+else.
 
-For each accomplishment, capture an `### ev:NNNN` entry (see
-`templates/evidence-entry.md`) with:
-- `role` (must match an employer you'll record in resume.yaml)
-- `dates`, `metric`, `scope`, `tags`, `angles`, `narrative`
-- `confidence`: **measured** (a real number with a source — record the source),
-  **estimated** (a number you believe but can't cite — phrase directionally),
-  or **qualitative** (no number). Be honest; this field is load-bearing and the
-  linter enforces it.
+Each accomplishment becomes an `### ev:NNNN` entry (`templates/evidence-entry.md`):
+`role` (must match an employer in resume.yaml), `dates`, `metric`, `scope`,
+`tags`, `angles`, `narrative`, and `confidence`: **measured** (a real number
+with a source, recorded), **estimated** (a number they believe but can't
+cite), or **qualitative** (no number). This field is load-bearing; the
+linter enforces it.
 
-**How many entries is enough** depends on how much career there is. Aim for
-the range that fits them, and stop when new questions stop producing new
-material rather than when a counter hits a number:
+How many is enough depends on the career. Stop when new questions stop
+producing new material, not when a counter hits a number:
 
-| Where they are | Realistic target |
+| Where they are | Realistic range |
 |---|---|
-| Student / graduate / first job | 10–20 — coursework, projects, part-time work, volunteering, societies all count |
-| Career changer | 20–40, weighted toward whatever supports the pivot track |
-| Early career (1–4 years) | 20–35 |
-| Mid career (5–12 years) | 35–60 |
-| Senior / long career / returner | 50+, and prune ruthlessly rather than skip |
+| Student / graduate / first job | 10–20 (coursework, projects, part-time work, volunteering all count) |
+| Career changer | 20–40, weighted toward the pivot |
+| Early career | 20–35 |
+| Mid career | 35–60 |
+| Senior / long career / returner | 50+, pruned rather than skipped |
 
-A thin bank caps every later phase, so keep interviewing while the answers are
-still yielding. But a graduate with 14 honest entries has a complete bank, and
-telling them otherwise just teaches them to embellish.
+**Not every accomplishment has a number, and that is fine.** Never push for a
+number they don't have; the honest qualitative version is stronger than a
+hedged fake. `tags` are whatever their field calls its capabilities.
 
-**Not every accomplishment has a number, and that is fine.** `confidence:
-qualitative` is a first-class value, not a failure — plenty of real work (care,
-teaching, design, craft, coordination, safety) is judged by outcome, not
-metric. Never push someone to produce a number they don't have; the linter will
-strip a fabricated one out of the draft anyway, and the honest qualitative
-version is stronger than a hedged fake.
+Then write a non-empty `## Shortfalls`: things target roles ask for that they
+don't have. Empty means they weren't honest. A pivot track's `known_gaps`
+belong here too. Nothing is ever deleted from the bank; obsolete entries get
+`status: retired`.
 
-`tags` are whatever their field calls its capabilities — software, machinery,
-clinical procedures, languages, curricula, certifications, methods, tools.
-They are not "technologies" unless that's their line of work.
+## 3 — Angles: the argument each resume will make
 
-Then write a non-empty `## Shortfalls` — things target roles ask for that the
-user doesn't have. If Shortfalls is empty, they weren't honest, and triage will
-be worthless. On a pivot track, the track's `known_gaps` belong here too.
-Nothing is ever deleted from the bank; obsolete entries get `status: retired`.
-
-#### Angles — the argument each resume will make (PRD §21)
-
-An **angle** is a positioning stance: one claim about what this person is
-*for*, proved by at least two evidence entries, aimed at a track. Three sit
-side by side in the system and are not interchangeable — the **track** is the
-job they're applying for, the **evidence** is what they've actually done, and
-the **angle** is the argument connecting the two. Every draft picks one, and
-that choice sets the summary's first line and which bullets lead.
-
-Derive them *after* the entries exist, never before: an angle invented first is
-a slogan looking for proof. Read back what the bank now holds and ask the user
-which of these they'd want a stranger to conclude about them. Aim for 3+ —
-enough that different postings get genuinely different arguments — and write
-each one into the bank's `## Angles` block (`templates/angle-entry.md`):
+Derive these **after** the entries exist. Read back what the bank holds and
+ask which of these they'd want a stranger to conclude about them. Aim for
+three or more, each into `## Angles` (`templates/angle-entry.md`):
 
 ```
 ### angle: <slug>
 claim:  <one line, their words: what they are for>
 proof:  ev:0031, ev:0044        # two or more entries that demonstrate it
-serves: <track ids from goals.yaml this angle argues for>
+serves: <track ids from goals.yaml>
 ```
 
-Then tag every relevant evidence entry with the angle slug in its `angles:`
-field, and map each track's `supporting_angles` to the slugs that serve it.
+Tag each relevant entry's `angles:` field, fill each track's
+`supporting_angles`, then run `python3 bin/validate.py --lint-bank` and fix
+what it names. Two questions catch a weak angle: which two entries prove it,
+and which track does it argue for?
 
-Two questions catch a weak angle before it reaches a resume: *which two
-entries prove this?* (fewer than two and it is a slogan — cut it or dig for
-the evidence) and *which track does it argue for?* (none and it will never be
-chosen). Check the whole block deterministically before moving on:
+## 4 — `profile/resume.yaml`: canonical facts
 
-```
-python3 bin/validate.py --lint-bank
-```
+Every employer, title and date, exactly once. Drafts must match this.
 
-It fails on an angle nothing proves, an angle with no claim, and an entry that
-cites an angle the bank never declared. It cannot tell you whether an angle is
-a *good* pitch — that is the user's call, and it is worth asking them out loud.
+## 5 — `profile/voice.md`: tone
 
-### 3. `profile/resume.yaml` — canonical facts
-Every employer, title, and date, exactly once. Variants must match this.
+A short description of how they write: plain vs formal, dry vs warm, how
+they'd open a letter. Written once, used by every draft.
 
-### 4. `profile/voice.md` — tone
-A short description of how the user writes: plain vs. formal, dry vs. warm,
-first-person cover voice. This is the tailor's TONE parameter, written once.
+## 6 — `profile/config.yaml`: behaviour
 
-### 5. `profile/config.yaml` — behaviour
-Copy `templates/config.example.yaml`. Interview for `constraints` (comp floor
-in their own currency, remote, locations as their boards print them,
-dealbreakers in their own words), `cover.max_words`, `tracker.ghost_days`.
-The `scoring.*` keys (`threshold`, `queue_cap`, `near_miss_band`,
-`near_miss_cap`) only matter if the optional sweep is on — leave the template
-defaults alone unless the user says yes in step 6, and interview for them
-there.
+Copy `templates/config.example.yaml`. Interview for `constraints` (pay floor
+in their currency, remote, locations as boards print them, dealbreakers in
+their words), `cover.max_words`, `tracker.ghost_days`. Leave `style` and
+`ats` at their defaults unless asked.
 
-### 6. The nightly sweep — optional, off unless they ask for it (PRD §22)
+## 7 — `profile/connections.csv` (optional)
 
-The system is complete without this: the everyday workflow is `/add` →
-`/choose` → `/tailor` → `/log`, and nothing below is needed for it. The sweep
-is an add-on — it watches chosen companies' public job boards overnight and
-queues a shortlist — and it costs some one-time configuration outside the
-chat, so **ask, plainly, and take no for an answer**:
-
-*"One optional extra: I can check chosen companies' job boards every night
-and queue anything promising for your morning. It needs about ten minutes of
-one-time settings work, and it only covers companies on the ten big job-board
-systems. Want it? You can switch it on later at any time — just re-run
-/setup or ask."*
-
-**No** → skip the rest of this step entirely. Don't create `targets.yaml`;
-an absent or empty targets file is exactly how the rest of the system knows
-the sweep is off (`/next` treats paste-driven as normal, never as a gap).
-Move on to step 7.
-
-**Yes** → three things, in order:
-
-1. **`profile/targets.yaml`** — copy `templates/targets.example.yaml`. For
-   each company the user names, find its ATS + board slug (ask them to paste
-   the careers-page URL). For the top ~20, have them write
-   `profile/companies/<slug>.md` — three honest lines on why they'd go
-   (PRD §4.3). If they can't write three honest lines, the company doesn't
-   belong.
-
-   Ask for companies that hire for **each** track, not just the first one. A
-   pivot track with no employers behind it produces a permanently empty
-   section of every shortlist. And warn them plainly if their field is
-   unlikely to be on the supported ATSes at all (public sector, healthcare
-   systems, education, small local employers often are not): that is not a
-   failure, it means their system stays `/add`-driven and the sweep is a
-   bonus. Set expectations now rather than letting three silent mornings do
-   it.
-
-   Two ways to check a company before committing to it, both cheap:
-   `python3 bin/fetch.py --dry-run` after adding it, or just paste the
-   careers URL and read the slug off it.
-
-2. **Scoring** — now interview for `scoring.threshold` and
-   `scoring.queue_cap` in `config.yaml`. The template defaults for
-   `scoring.near_miss_band` / `scoring.near_miss_cap` (the tier that surfaces
-   the closest below-threshold roles at Gate 1 so a thin night isn't silent)
-   are sensible as-is — mention they exist and can be tuned, but don't
-   belabour them; set `near_miss_band: 0` if the user wants triage to be a
-   hard cut.
-
-3. **The settings work** — walk them through the two paste-in guides, one at
-   a time, waiting while they click: `docs/ENVIRONMENT.md` (the allowed
-   websites and the 4-line setup script) and `docs/ROUTINE.md` (the schedule
-   and the prompt it runs). Both are copy-paste; neither needs a terminal.
-   Tell them the first sweep should be run manually on a day they're not
-   busy — it triages the whole backlog at once.
-
-### 7. `profile/connections.csv` (optional)
 LinkedIn → Settings → Data Privacy → Get a copy of your data → Connections.
-Commit the CSV. It matches referral paths against each job's company.
+They upload the CSV; it's used to spot referral paths.
 
-## After each section
-Commit it. In a cloud session, committed is the only kind of existing (PRD §5.2).
+## 8 — after each section
 
-Then have the user hand-match 3 real JDs against the bank — **JDs from their
-target tracks**, including a pivot track if they have one. Can't find support?
-Either the bank is thin (go back and interview more) or the track is further
-from their evidence than the `transferable` line claimed (go back and make that
-line honest). Both are better found now than in a draft. Every later phase is
-capped by these two files.
+Save quietly:
 
-Close by naming the everyday loop once — **`/add` a posting → `/choose` the
-keeps → `/tailor` the drafts → apply by hand → `/log` it** — and the one next
-thing: `/add` a real posting they've been sitting on, and see that loop run
-once.
+```
+git add -A && git commit -q -m "setup: <section>" && git push -q origin main \
+  || (git pull -q --rebase origin main && git push -q origin main)
+```
+
+At the end, have them hand-match three real ads from their target tracks
+against the bank (a pivot track included). Can't find support? Either the
+bank is thin (interview more) or the `transferable` line overreached (make it
+honest). Both are better found now than in a draft.
+
+Close by naming the loop once: **`/apply` an ad → apply by hand → `/log`
+it → `/prep` when an interview lands**. Suggest one next thing: `/apply` a
+real ad they've been sitting on. Mention in one sentence that an optional
+nightly sweep of chosen companies' job boards exists
+(`optional/sweep/README.md`) and needs some settings work outside the chat;
+don't sell it.

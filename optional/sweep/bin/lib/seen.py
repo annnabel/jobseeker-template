@@ -8,7 +8,7 @@ Invariants (violating any is a bug):
   * A posting is marked seen ONLY at a terminal disposition (killed by
     triage, or landed in queue/shortlist/). Never at fetch time —
     mark-at-fetch then crash loses postings silently. A shortlisted role
-    later discarded at /tailor needs no new record (PRD §15).
+    later discarded at /apply needs no new record.
 """
 from __future__ import annotations
 

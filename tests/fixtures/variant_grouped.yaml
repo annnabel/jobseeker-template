@@ -1,5 +1,5 @@
 # A clean variant using the grouped skills shape, a headline, and a prose
-# summary (PRD §25). Every item is tagged by an entry in evidence-bank.md.
+# summary. Every item is tagged by an entry in evidence-bank.md.
 name: Pat Doe
 headline: Platform Engineer
 contact:

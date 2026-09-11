@@ -14,12 +14,12 @@
   },
   "permissions": {
     "allow": [
-      "Bash(python3 bin/fetch.py:*)",
       "Bash(python3 bin/render.py:*)",
-      "Bash(python3 bin/seen.py:*)",
       "Bash(python3 bin/validate.py:*)",
       "Bash(python3 bin/ats_score.py:*)",
       "Bash(python3 bin/tracker.py:*)",
+      "Bash(python3 optional/sweep/bin/fetch.py:*)",
+      "Bash(python3 optional/sweep/bin/seen.py:*)",
       "Bash(python3 -m pytest:*)",
       "Bash(git checkout:*)",
       "Bash(git add:*)",

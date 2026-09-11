@@ -3,7 +3,8 @@
 
     fetch.py [--source ats|all] [--dry-run]
 
-Reads profile/targets.yaml -> lib/sources/<ats>.py. Skips postings outside the
+Reads profile/targets.yaml -> lib/sources/<ats>.py. Lives under optional/sweep/;
+run it from the repo root: python3 optional/sweep/bin/fetch.py Skips postings outside the
 location filter, outside profile/goals.yaml's optional role_filter, or last
 updated more than --max-age-days ago (default 30). Dedupes against the union of
 state/seen/*.jsonl. Writes one JSON file per posting under queue/raw/.
@@ -203,7 +204,7 @@ def main(argv: list[str] | None = None) -> int:
     if attempted and failures == attempted:
         print(
             f"error: all {attempted} adapter fetch(es) failed — nothing was "
-            "fetched. Check the environment allowlist (docs/ENVIRONMENT.md §1) "
+            "fetched. Check the environment allowlist (optional/sweep/README.md, step 2) "
             "before trusting this run. Exiting non-zero so an unattended sweep "
             "cannot mistake a broken environment for a quiet night.",
             file=sys.stderr,

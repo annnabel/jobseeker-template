@@ -1,279 +1,171 @@
 # Jobseeker
 
-**A job-search assistant that runs inside Claude Code.** It finds job postings,
-drafts a tailored resume and cover letter for the ones you pick, checks every
-claim against facts you provided, and keeps a tracker of where each application
-is up to. You review everything, and **you always click "apply" yourself, in
-your own browser**.
+**A job-search assistant that runs inside Claude Code.** Paste in a job ad,
+get an honest read on the fit, and, if you say yes, a tailored resume and
+cover letter built only from facts you gave it. You review every line. You
+always click "apply" yourself, in your own browser.
 
-It works from **where you want to go**, not just where you've been — so it fits
-a graduate, a career changer, and someone after the next rung of the same
-ladder equally well. Whatever your field.
+It works from **where you want to go**, not just where you've been, so it fits
+a graduate, a career changer, and someone after the next rung equally well.
+It assumes nothing about your field, seniority or country: every judgment it
+makes comes from answers you give it during setup.
 
-**It assumes nothing about you.** No industry, no seniority, no country, no
-list of skills. Every example value you'll find in here is a blank to fill in,
-and everything the system judges a job by comes from answers you give it during
-setup.
-
-MIT licensed — copy it, change it, keep it.
-
----
+MIT licensed. Copy it, change it, keep it.
 
 ## What it does
 
-Think of it as a very careful assistant that:
-
-- **Knows what you're aiming at.** Setup asks you to name one to three *career
-  tracks* — the jobs you actually want, in your words. Everything downstream
-  scores roles against those, not against your last job title. If a track is a
-  **change of direction**, you say so, name the experience that genuinely
-  carries across, and name what you're missing; drafts then lead with the
-  transferable work and state the gap plainly instead of writing around it.
-- **Keeps a queue of roles you're considering.** You paste in job ads you
-  found anywhere (`/add`); each gets an honest fit read and waits in the
-  queue. If you switch on the optional nightly sweep, it checks the public
-  job boards of companies you choose and adds to the same queue overnight.
-- **Drafts for you.** For the roles you pick (`/choose`), it writes a
-  tailored resume and cover letter in plain markdown, easy to read on your
-  phone, and laid out the way a screener reads: a headline naming the role, a
-  short summary, your skills grouped under headings in the ad's own words,
-  then the experience that proves it.
-- **Writes for the screening software, then for the human.** Most applications
-  are read by keyword-matching software first. A checker reads the job ad,
-  works out which words that employer keeps repeating, and reports exactly
-  which of them your draft uses — so the fix is a real one, not a guess. It
-  will re-word your own experience in the employer's language and pull forward
-  the evidence that proves the point, and it will never add a skill you don't
-  have: anything it can't cover honestly is written down as a gap for you to
-  see. It also flags a word repeated so often the draft reads as stuffed,
-  because a person reads it after the software does.
-- **Never makes things up.** Every claim in every draft must trace back to a
-  fact *you* told it during setup. An automated checker blocks drafts that
-  invent numbers, employers, or technologies, and even bans AI-sounding
-  phrases so letters read like you wrote them.
-- **Tracks everything.** A simple spreadsheet (`tracker.csv`) shows every
-  application and its status. It updates itself; you never edit it. When an
-  application has sat silent for a week it nudges you to send a short
-  follow-up (you write and send it — a polite check-in measurably lifts
-  response rates), and it can report your response and callback rates by
-  career track and by resume angle, so you can see which argument is actually
-  landing.
-
-## Which job boards the sweep can reach
-
-*(Only relevant if you switch on the optional sweep — `/setup` asks. Pasting
-ads in with `/add` works for a job found anywhere, no list needed.)*
-
-The sweep only ever talks to the **official public job-listing APIs** that
-companies' own careers pages are built on — never LinkedIn, Indeed, or
-anything behind a login. Today it covers ten of these systems, which between
-them power most mid-to-large employers' careers pages:
-
-**Greenhouse · Lever · Ashby · Workable · SmartRecruiters · Recruitee ·
-Workday · Oracle Recruiting Cloud · PageUp · Teamtailor**
-
-**What it deliberately can't reach — and why:**
-
-- **LinkedIn, Indeed, Seek, Glassdoor, and anything behind a login.** These
-  forbid scraping and need an account; reaching them would break the "never
-  scrape, never log in" rule the whole system is built on. Found a role there?
-  Just paste it in with **`/add`** — same honest draft, same review.
-- **Employers on a job system not in the list above.** A few older or niche
-  systems publish no open API. Each system the sweep supports is one small
-  adapter file, so a new one can be added when it's worth it; until then those
-  boards are reached the same way — by hand, with `/add`.
-- **Even on the boards it does cover, the sweep shows you less on purpose.**
-  It skips anything outside your locations, older than 30 days, already seen in
-  a past run, or scoring below your quality bar — so the morning shortlist is
-  only fresh, in-region, unseen roles worth a look, not every opening.
-
-The takeaway: the sweep is a **wide first pass** across the boards it can reach
-automatically, and **`/add`** covers everything else. Nothing good is lost — it
-just arrives by a different door.
+- **Knows what you're aiming at.** Setup asks for one to three career tracks,
+  in your words. Every role is scored against those, not against your last
+  job title. If a track is a change of direction, you say so and name what
+  genuinely carries across and what you're missing; drafts then lead with the
+  transferable work and state the gap plainly.
+- **Reads the fit honestly.** Paste an ad and you get a score, the reason, the
+  red flags, and what the role wants that you don't have. Then it asks
+  whether to draft it. "No" and "later" are fine answers.
+- **Drafts for the screening software, then for the human.** Most
+  applications are read by keyword-matching software first. A checker works
+  out which words the employer keeps repeating and reports exactly which ones
+  your draft uses. It will re-word your own experience in the employer's
+  language and pull forward the evidence that proves the point. It will never
+  add a skill you don't have: anything it can't cover honestly is written
+  down as a gap for you to see.
+- **Never makes things up.** Every claim in every draft traces back to a fact
+  you told it during setup. An automated checker blocks drafts that invent
+  numbers, employers or skills, and bans AI-sounding phrases so letters read
+  like you wrote them.
+- **Walks the draft with you.** The top third first (headline, summary,
+  skills), because that's what a screener reads before deciding whether to
+  read on. Questions it couldn't answer are asked now, and your answers are
+  saved so it never asks twice.
+- **Tracks everything.** A simple spreadsheet shows every application and its
+  status. It updates itself. After a week of silence it nudges you to send a
+  short follow-up, and it can report your callback rate by track and by
+  resume angle so you can see which argument is landing.
+- **Preps you for the interview.** When a reply comes, `/prep` builds likely
+  questions, practice stories from your own history, and plain-spoken answers
+  for the gaps. It preps you to back up what you claimed, never to claim more.
 
 ## What it will never do
 
-These rules are built in and non-negotiable:
-
 - **Never submits an application.** You apply by hand, every time.
-- **Never invents or exaggerates** a metric, job title, date, or skill.
+- **Never invents or exaggerates** a metric, title, date or skill.
 - **Never scrapes** LinkedIn, Indeed, or anything behind a login.
 - If it doesn't know something about you, it **asks** instead of guessing.
-- If you're missing something a role wants, it **says so plainly** instead of
+- If you're missing something a role wants, it **says so** instead of
   papering over it.
 
 ## What you need
 
-- A **GitHub account** (free) — your copy of this system lives in a GitHub
-  repository.
-- **Claude Code** — the easiest way is Claude Code on the web at
-  [claude.ai/code](https://claude.ai/code), which needs a paid Claude plan.
-  No API keys, no extra costs, nothing to install on your computer.
+- A free **GitHub account**. Your private copy of this system lives there.
+- **Claude Code**, easiest at [claude.ai/code](https://claude.ai/code) on a
+  paid Claude plan. Nothing to install.
 
-You do **not** need to know how to code. Everything is driven by typing
-simple commands like `/setup` and `/add` into a Claude Code chat.
+You do not need to know how to code, and you never need to touch git. You
+type commands like `/setup` and `/apply` into a chat; saving is automatic.
 
-## Set it up (one time, ~30 minutes plus the interview)
+## Set it up (once)
 
-1. **Make your own private copy.** On this repository's GitHub page, click
+1. **Make your own private copy.** On this repository's GitHub page click
    **Use this template → Create a new repository**. Name it something like
    `my-jobseeker` and set it to **Private**. Private matters: your copy will
-   hold your real career history. (If you don't see the "Use this template"
-   button, ask the person who shared this with you to enable it, or fork the
-   repo and make your fork private.)
+   hold your real career history.
 2. **Open it in Claude Code.** Go to [claude.ai/code](https://claude.ai/code)
    and connect your new private repository.
-3. **Run `/setup`.** This is the big one. Claude asks first about **where you
-   want to go** (your career tracks — 20 minutes), then interviews you about
-   your career a few questions at a time to build your "evidence bank": the
-   master list of everything true about you that all future resumes draw from.
-   Budget a relaxed hour or three; you can stop and pick it up later. Honest
-   answers matter more than impressive ones — the system is designed so drafts
-   can only use what's in the bank. Not every accomplishment needs a number,
-   and a shorter honest bank beats a padded one. At the end it offers the
-   **optional nightly sweep** (see below) — saying no is the simplest start,
-   and you can switch it on later at any time.
-4. **Try it.** Find a job ad anywhere, run `/add`, and paste the ad in.
-   You'll get an honest fit read and the role joins your queue — then
-   `/choose` it, and `/tailor` drafts it for you to review in the chat.
+3. **Run `/setup`.** Claude asks first about where you want to go (your
+   career tracks, about 20 minutes), then interviews you about your career a
+   few questions at a time to build your "evidence bank", the master list of
+   everything true about you that all future drafts draw from. Budget a
+   relaxed hour or three; you can stop and pick it up later. Honest answers
+   matter more than impressive ones, and not every accomplishment needs a
+   number.
+4. **Try it.** Find a job ad anywhere, run `/apply`, paste it in.
 
-Lost at any point? Type **`/next`** — it looks at where things stand and
-tells you the one best thing to do now.
+Lost at any point? Type `/next`.
 
-## The everyday workflow
-
-Five commands, in order — this is the whole system:
-
-1. **`/add`** — paste in a job ad you found anywhere. Claude reads it, scores
-   the fit honestly (including what the role wants that you don't have), and
-   queues it. Add as many as you like, whenever you like.
-2. **`/choose`** — when you're ready, skim the queue and pick the keepers.
-   "None of these" is a fine answer.
-3. **`/tailor`** — drafts the resume and cover letter for your picks only,
-   and walks them with you line by line. It asks you questions where it's
-   unsure rather than guess; your answers are saved so it never asks twice.
-4. **Apply by hand.** Open the company's site in your browser and submit the
-   application yourself, using the approved drafts.
-5. **`/log`** — tell it "I applied". The tracker updates itself. Later, when
-   you hear back (or don't), one more `/log` line records it. Silence
-   eventually auto-marks the role "ghosted" with no effort from you.
-
-And when a reply turns into an interview, run **`/prep`** — it builds likely
-questions, practice stories drawn from your own history, and plain-spoken
-answers for anything the role wants that you don't have. It preps you to
-back up exactly what your application said, never to claim more.
-
-### With the automatic sweep turned on (optional)
-
-Say yes when `/setup` offers it (or re-run `/setup` later), and each weekday
-morning the sweep checks your chosen companies' job boards and adds anything
-promising to the same queue, with a morning report. Your workflow doesn't
-change: `/choose` the keepers over coffee, `/tailor`, apply by hand, `/log`.
-Roles you discard never come back.
-
-Turning it on takes about ten minutes of one-time settings work — `/setup`
-walks you through the two copy-paste guides (`docs/ENVIRONMENT.md` and
-`docs/ROUTINE.md`) when you say yes.
-
-## The commands
+## The everyday loop
 
 | Command | What it does |
 |---|---|
-| `/setup` | One-time interview that builds your profile and evidence bank; offers the optional sweep at the end |
-| `/add` | Paste in a job ad you found; honest fit read, then it joins the queue |
-| `/choose` | Pick which queued roles are worth tailoring |
-| `/tailor` | Write the resume + cover letter for the roles you kept |
-| `/log` | Record "I applied" or any status change, in about two minutes |
-| `/prep` | When you land an interview: likely questions, practice stories from your own history, and honest answers for the gaps |
-| `/next` | "What should I do now?" — reads the state of play, gives you one next step |
-| `/review` | Re-open a draft you deferred and finish reviewing it |
-| `/sweep` | (Optional) the nightly search itself — run by the schedule, not by you |
+| `/apply` | Paste an ad. Get the fit read. Say yes and it drafts the resume and cover letter and walks them with you. Run it with nothing pasted to see what's waiting. |
+| *(you)* | Open the employer's site and submit the application yourself, using the approved draft. |
+| `/log` | "I applied to X." Later: "X replied" / "rejected". Two minutes. The tracker updates itself. |
+| `/prep` | An interview is coming: likely questions, practice stories, honest answers for the gaps. |
+| `/next` | "What should I do now?" One prioritised action and the short list of everything pending. |
+| `/setup` | The one-time interview. Re-run it any time to add to your evidence bank or change your goals. |
+
+## Changing direction, or aiming at two things
+
+Your career tracks live in `profile/goals.yaml`, and they are meant to be
+edited. Open it, or just tell Claude in a session, when you're pivoting, when
+you're open to a second direction, or when a track keeps coming up empty.
+Nothing edits that file but you. Claude reads your goals and reports when a
+track isn't working, and leaves the decision alone.
+
+## Optional: the nightly sweep
+
+If you'd rather not go looking for ads, the sweep can check chosen companies'
+public job boards every weekday morning and queue anything promising for you
+to look at with `/apply`. It costs about ten minutes of one-time settings work
+outside the chat and only covers employers on the big job-board systems.
+Everything about it, including how to switch it on, is in
+[`optional/sweep/README.md`](optional/sweep/README.md). The everyday loop is
+complete without it.
 
 ## What's in the folders
 
 ```
-profile/     Everything about you (starts empty; /setup fills it in)
-queue/       Roles in flight: everything queued by /add or the sweep, and your ready-to-send drafts
-applied/     Roles you've applied to (created by /log)
-tracker.csv  The self-maintaining application tracker
-templates/   Blank starting points the system copies from
-docs/        The two copy-paste guides for the optional sweep (environment + schedule)
-bin/         The scripts that fetch postings and fact-check drafts
-.claude/     The commands and rules Claude follows
-PRD.md       The full design document, if you're curious how it all works
-CLAUDE.md    The safety rules Claude must obey in this repo
+profile/       Everything about you (starts empty; /setup fills it in)
+queue/         Roles in flight: ads you've pasted and drafts ready to send
+applied/       Roles you've applied to (created by /log)
+tracker.csv    The self-maintaining application tracker
+templates/     Blank starting points the system copies from
+bin/           The scripts that fact-check drafts and build the tracker
+optional/      The nightly sweep, if you ever want it
+docs/          A one-page explanation of how it all fits together
+.claude/       The commands and rules Claude follows
+CLAUDE.md      The rules Claude must obey in this repo
 ```
-
-## Changing direction, or aiming at two things at once
-
-Your career tracks live in `profile/goals.yaml`, and they are meant to be
-edited. Open it (or just ask Claude in a session) when:
-
-- **You're pivoting.** Set `pivot: true` on the track, write `transferable` —
-  which of your experience genuinely carries across, in your own words — and
-  `known_gaps`, what you plainly don't have yet. Both are honest-answer
-  fields. A padded `transferable` produces a resume that wins an interview you
-  can't survive, which is the one thing this system exists to prevent.
-- **You're open to two directions.** Add a second track. The shortlist is
-  grouped by track so you can see how each is doing. Three is the practical
-  limit; past that the shortlist stops meaning anything.
-- **A track keeps coming up empty.** Usually its `titles` are too narrow, or
-  no company in `targets.yaml` hires for it. `/next` will point this out.
-
-Nothing edits this file but you. Claude reads your goals, reports when a track
-isn't working, and leaves the decision alone.
 
 ## Getting improvements later
 
-Your copy is a snapshot. Fixes made to the template afterwards don't reach it
-by themselves — ask Claude in a session:
+Your copy is a snapshot. To pick up fixes made to the template afterwards,
+ask Claude in a session:
 
 > Pull the latest changes from the upstream template, but keep everything in
 > `profile/`, `queue/`, `applied/`, `state/` and `tracker.csv` exactly as it is.
 
-(Under the hood that's `git remote add upstream <template-url>` then a fetch
-and merge. Your data lives in directories the template never touches, so
-conflicts are rare and confined to `bin/`, `.claude/`, `docs/` and `templates/`.)
-
 ## Sharing it on
 
-Point people at the template repo, not at your copy — your copy has your career
-history in it. They click **Use this template**, make it **private**, and run
-`/setup`. Their goals, evidence, and companies are entirely their own; nothing
-about your search is carried across.
+Point people at the template repo, not at your copy. They click **Use this
+template**, make it **private**, and run `/setup`. Nothing about your search
+carries across.
 
 ## Good to know
 
-- **Your data stays in your private repo.** This template contains no
-  personal data (CI enforces that), and your copy should stay private because
-  it will.
-- **Everything is saved in Git automatically.** Every draft, decision, and
-  status change is committed, so nothing is ever lost and you can always see
-  history on GitHub.
-- **It's honest by design.** The fact-checker catches invention (made-up
-  numbers, employers, technologies). What it can't catch is *stretching* a
-  real fact — that's what your review is for. When in doubt, tone it down.
-- **Costs nothing beyond your Claude subscription.** The job-board checks use
-  free public APIs; there are no API keys anywhere in the system.
+- **Your data stays in your private repo.** The template contains no personal
+  data (an automated check enforces that), and your copy should stay private
+  because it will.
+- **Everything is saved automatically.** Every draft, answer and status change
+  is kept, so nothing is lost and you can always look back.
+- **It's honest by design.** The checker catches invention. What it can't
+  catch is stretching a real fact; that's what your walkthrough is for. When
+  in doubt, tone it down.
+- **Costs nothing beyond your Claude subscription.** No API keys anywhere.
 
 ## For technical users
 
 ```bash
-pip install --break-system-packages typst pyyaml httpx pydantic pytest
-python3 -m pytest tests/            # acceptance tests
-python3 bin/fetch.py --dry-run      # fetch + dedupe, writes nothing
-python3 bin/seen.py status          # what the dedupe index has seen
-python3 bin/validate.py <variant.yaml>
-python3 bin/validate.py --lint-bank      # the bank's angles: claimed, proved, used
-python3 bin/tracker.py --stats           # funnel, callback rates, follow-ups due
-python3 bin/ats_score.py --jd jd.md --variant <variant.yaml>   # keyword coverage
-python3 bin/check_template_clean.py # template-repo guard (fails in your instance, by design)
+pip install --break-system-packages typst pyyaml pytest ruff
+python3 -m pytest -q                         # core + optional sweep tests
+python3 bin/validate.py <resume.yaml>        # provenance + style gate
+python3 bin/validate.py --lint-bank          # the bank's angles hold together
+python3 bin/ats_score.py --jd jd.md --variant <resume.yaml> --cover cover.md
+python3 bin/tracker.py --stats               # funnel, callback rates, follow-ups due
+python3 bin/check_template_clean.py          # template guard (fails in your copy, by design)
 ```
 
-The full design and rationale live in `PRD.md` (§19 covers career tracks and
-what changed to make this shareable, §20 why nothing in here is filled in for
-you); the operating rules and red lines in `CLAUDE.md`.
+`docs/HOW-IT-WORKS.md` is the one-page map. `docs/archive/PRD.md` is the
+original design document, kept for the reasoning. `CLAUDE.md` holds the
+operating rules.
 
----
-
-Released under the MIT License — see `LICENSE`.
+Released under the MIT License. See `LICENSE`.

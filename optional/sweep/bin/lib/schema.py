@@ -89,7 +89,7 @@ class SeenEntry(BaseModel):
 
     Written only when a posting reaches a terminal disposition — killed by
     triage, or landed in queue/shortlist/. Never at fetch time. See PRD §6,
-    §15. A shortlisted role later discarded at /tailor needs no new record.
+    §15. A shortlisted role later discarded at /apply needs no new record.
     """
 
     fingerprint: str

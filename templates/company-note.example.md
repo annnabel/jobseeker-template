@@ -1,7 +1,7 @@
-<!-- profile/companies/<slug>.md — three honest lines. PRD §4.3.
-     If you can't write these, the company doesn't belong in targets.yaml.
-     This is quoted back into the cover letter's hook. It cannot hallucinate,
-     because it's your own prose. Never fetched from the web.
+<!-- profile/companies/<slug>.md — three honest lines, in your own words.
+     They feed the cover letter's opening. Below them, /apply and /prep append
+     dated `## Researched` sections, one sourced fact per line; those lines
+     are Claude's, these are yours, and yours are never edited.
      Write it about whatever actually draws you: the work, the team, the
      patients, the students, the craft, someone you know there. -->
 ---
