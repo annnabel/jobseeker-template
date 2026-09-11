@@ -1,0 +1,40 @@
+# resume.yaml — the canonical facts. Copy to profile/resume.yaml.
+#
+# Every employer, title and date, exactly once, plus the header every draft
+# prints. `/setup` fills this in right after goals and before the evidence
+# bank, because each evidence entry's `role:` must name an employer listed
+# here, and `bin/validate.py` fails any draft whose experience or education
+# entries differ from this file by a character. Nothing edits it but `/setup`
+# and you.
+#
+# EVERY VALUE IS A PLACEHOLDER. Dates are written the one way the drafts use:
+# "YYYY-MM → YYYY-MM", or "YYYY-MM → present".
+
+name: <Full Name>
+
+# Printed at the top of every draft. Only what you want an employer to have.
+contact:
+  email: <email>
+  phone: <phone>                    # optional; leave out to omit
+  location: <City, Region>          # or "Remote"
+  links:                            # optional; each printed as its own entry
+    - <a link worth following, e.g. a portfolio or public profile>
+
+# Most recent first. `company` and `title` exactly as you'd want them printed;
+# the evidence bank's `role:` lines end with the same `company` spelling.
+employers:
+  - company: <Employer>
+    title: <Title held>
+    dates: "<YYYY-MM → YYYY-MM>"
+    location: <City, Region>        # optional
+  - company: <Earlier employer>
+    title: <Title held>
+    dates: "<YYYY-MM → YYYY-MM>"
+
+# Degrees, diplomas, licences, certifications: anything a draft may list as
+# an entry of its own. A draft's Education entry uses `institution` as its
+# company and `qualification` as its title, and must match this exactly.
+education:
+  - institution: <School, college or awarding body>
+    qualification: <Qualification, as printed on it>
+    dates: "<YYYY-MM → YYYY-MM>"

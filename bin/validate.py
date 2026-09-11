@@ -3,7 +3,7 @@
 
     validate.py <variant.yaml> [--bank profile/evidence-bank.md] [--resume profile/resume.yaml]
     validate.py --cover <cover.md> --variant <variant.yaml> [--bank ...] [--note ...]
-    validate.py --lint-bank [--bank profile/evidence-bank.md]
+    validate.py --lint-bank [--entries-only] [--bank ...] [--resume ...]
 
 Deterministic. Regex-able. No model in the gate. Exits non-zero on any
 violation, printing every violation found (not just the first).
@@ -52,6 +52,10 @@ def parse_bank(path: str) -> dict[str, dict]:
     headers = list(EV_HEADER.finditer(text))
     for i, m in enumerate(headers):
         ev_id = m.group(1)
+        if ev_id in entries:
+            entries[ev_id].setdefault("duplicates", 0)
+            entries[ev_id]["duplicates"] += 1
+            continue
         start = m.end()
         end = headers[i + 1].start() if i + 1 < len(headers) else len(text)
         block = text[start:end]
@@ -170,18 +174,112 @@ def variant_angle(variant: dict) -> str:
     return ""
 
 
-def lint_bank(bank_path: str) -> list[str]:
-    """Check the bank's angles hold together. PRD §21.
+CONFIDENCE_VALUES = ("measured", "estimated", "qualitative")
+NO_SOURCE = {"", "n/a", "na", "none", "-", "tbd", "?"}
+
+
+def canonical_facts(resume_path: str | None) -> tuple[set[tuple], list[str]]:
+    """The (company, title, dates) triples resume.yaml declares, and its company names.
+
+    Education rows count too: a draft prints a degree as an entry with the
+    institution as `company` and the qualification as `title`, so those are
+    canonical facts the same way an employer is.
+    """
+    if not resume_path or not os.path.exists(resume_path):
+        return set(), []
+    with open(resume_path, encoding="utf-8") as fh:
+        resume = yaml.safe_load(fh) or {}
+    triples: set[tuple] = set()
+    companies: list[str] = []
+    for e in resume.get("employers", []) or []:
+        triples.add((e.get("company"), e.get("title"), str(e.get("dates"))))
+        if e.get("company"):
+            companies.append(str(e["company"]))
+    for e in resume.get("education", []) or []:
+        triples.add((e.get("institution"), e.get("qualification"), str(e.get("dates"))))
+        if e.get("institution"):
+            companies.append(str(e["institution"]))
+    return triples, companies
+
+
+def lint_entries(entries: dict[str, dict], companies: list[str]) -> list[str]:
+    """Per-entry checks: the fields the draft gates read must be there and well-formed.
+
+    `/setup` runs this after every batch of entries, so a malformed
+    `confidence:` or an entry with no tags is caught while the person who
+    knows the answer is still in the conversation, not days later when a
+    draft fails. When resume.yaml exists, each `role:` must end in one of its
+    employers or institutions, spelled the same way.
+    """
+    errors: list[str] = []
+    lowered = [c.lower() for c in companies]
+    for ev, e in entries.items():
+        raw = e["raw"]
+        if e.get("duplicates"):
+            errors.append(f"{ev} appears {e['duplicates'] + 1} times; every ID is unique")
+        conf = e["confidence"]
+        if conf not in CONFIDENCE_VALUES:
+            errors.append(
+                f"{ev} confidence is {conf or 'missing'!r}; must be one of "
+                f"{', '.join(CONFIDENCE_VALUES)}"
+            )
+        if conf == "measured" and raw.get("source", "").strip().lower() in NO_SOURCE:
+            errors.append(
+                f"{ev} is `measured` with no `source:`; a number nobody can point to is "
+                f"`estimated`"
+            )
+        if not e["tags"]:
+            errors.append(f"{ev} has no `tags:`; nothing in it can back a skill")
+        role = raw.get("role", "").strip()
+        if not role:
+            errors.append(f"{ev} has no `role:` (Title, Employer)")
+        elif lowered and not any(role.lower().endswith(c) for c in lowered):
+            errors.append(
+                f"{ev} role {role!r} names no employer or institution from resume.yaml; "
+                f"spell it the way resume.yaml does"
+            )
+        if not raw.get("dates", "").strip():
+            errors.append(f"{ev} has no `dates:`")
+    return errors
+
+
+def has_shortfalls(bank_path: str) -> bool:
+    with open(bank_path, encoding="utf-8") as fh:
+        text = fh.read()
+    m = re.search(r"^##\s+Shortfalls\s*$(.*?)(?=^##\s|\Z)", text, re.MULTILINE | re.DOTALL)
+    return bool(m and m.group(1).strip())
+
+
+def lint_bank(
+    bank_path: str, resume_path: str | None = None, entries_only: bool = False
+) -> list[str]:
+    """Check the bank holds together: every entry well-formed, every angle proved.
 
     Deterministic, like everything else in this file, and the same boundary
-    applies: it catches an angle that does not exist or that nothing proves.
-    Whether an angle is a *good* pitch is a human judgment.
+    applies: it catches an angle that does not exist or that nothing proves,
+    and an entry a draft gate could not read. Whether an angle is a *good*
+    pitch, or an entry an honest one, is a human judgment.
+
+    `entries_only` is the mid-interview mode: `/setup` runs it after each
+    batch of entries, before any angle exists, so a bank with no `## Angles`
+    and no `## Shortfalls` yet is not an error there.
     """
     if not os.path.exists(bank_path):
         return [f"evidence bank not found: {bank_path}"]
-    errors: list[str] = []
     entries = parse_bank(bank_path)
+    _triples, companies = canonical_facts(resume_path)
+    errors: list[str] = lint_entries(entries, companies)
+    if not entries:
+        errors.append("bank holds no `### ev:NNNN` entries")
+    if entries_only:
+        return errors
+
     angles = parse_angles(bank_path)
+    if not has_shortfalls(bank_path):
+        errors.append(
+            "bank has no `## Shortfalls`, or it is empty; every candidate lacks "
+            "something a target role asks for"
+        )
 
     if not angles:
         errors.append("bank declares no `## Angles`; every variant is then unpositioned")
@@ -445,14 +543,9 @@ def validate_resume(
             "or none of them"
         )
 
-    # Canonical facts must match resume.yaml if present.
+    # Canonical facts must match resume.yaml if present (employers and education).
     if resume_path and os.path.exists(resume_path):
-        with open(resume_path, encoding="utf-8") as fh:
-            resume = yaml.safe_load(fh) or {}
-        canon = {
-            (e.get("company"), e.get("title"), str(e.get("dates")))
-            for e in resume.get("employers", []) or []
-        }
+        canon, _companies = canonical_facts(resume_path)
         for entry in canonical_employers(variant):
             key = (entry.get("company"), entry.get("title"), str(entry.get("dates")))
             if key not in canon:
@@ -554,7 +647,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--lint-bank",
         action="store_true",
-        help="check the bank's `## Angles` block instead of a draft (PRD §21)",
+        help="check the bank's entries and `## Angles` block instead of a draft (PRD §21)",
+    )
+    parser.add_argument(
+        "--entries-only",
+        action="store_true",
+        help="with --lint-bank: check entries only; no angles or shortfalls needed yet",
     )
     parser.add_argument(
         "--config",
@@ -566,8 +664,8 @@ def main(argv: list[str] | None = None) -> int:
     banned, banned_regex = load_banned(args.config)
 
     if args.lint_bank:
-        errors = lint_bank(args.bank)
-        mode = f"bank {args.bank}"
+        errors = lint_bank(args.bank, args.resume, args.entries_only)
+        mode = f"bank {args.bank}" + (" (entries only)" if args.entries_only else "")
     elif args.cover:
         variant_path = args.variant_flag or args.variant
         if not variant_path:
@@ -588,7 +686,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  ✗ {e}", file=sys.stderr)
         return 1
     print(
-        f"OK: {mode} — {'angles hold' if args.lint_bank else 'provenance clean'}",
+        f"OK: {mode} — "
+        f"{'entries well-formed' if args.entries_only else 'angles hold' if args.lint_bank else 'provenance clean'}",
         file=sys.stderr,
     )
     return 0

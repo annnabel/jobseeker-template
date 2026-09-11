@@ -152,14 +152,33 @@ def test_render_markdown_missing_ev_fails(tmp_path):
 BANK = os.path.join(FIX, "evidence-bank.md")
 
 
-def write_bank(tmp_path, angles: str, entry_angles: str = "platform-leader") -> str:
+ENTRY = (
+    "### {ev} — {title}\nrole:       Staff Engineer, Example Co\n"
+    "dates:      2021-03 → 2023-08\nconfidence: {confidence}\n{extra}"
+    "tags:       {tags}\nangles:     {angles}\n\n"
+)
+
+
+def entry(ev, title="An entry", confidence="qualitative", tags="a-skill", angles="", extra=""):
+    return ENTRY.format(
+        ev=ev, title=title, confidence=confidence, tags=tags, angles=angles, extra=extra
+    )
+
+
+def write_bank(
+    tmp_path,
+    angles: str,
+    entry_angles: str = "platform-leader",
+    entries: str | None = None,
+    shortfalls: str = "## Shortfalls\n- Something a target role asks for.\n",
+) -> str:
     path = tmp_path / "bank.md"
+    if entries is None:
+        entries = entry("ev:0001", "First", angles=entry_angles) + entry(
+            "ev:0002", "Second", angles=entry_angles
+        )
     path.write_text(
-        f"# Bank\n\n## Angles\n\n{angles}\n\n## Evidence\n\n"
-        f"### ev:0001 — First\nconfidence: qualitative\ntags:       a-skill\n"
-        f"angles:     {entry_angles}\n\n"
-        f"### ev:0002 — Second\nconfidence: qualitative\ntags:       a-skill\n"
-        f"angles:     {entry_angles}\n",
+        f"# Bank\n\n## Angles\n\n{angles}\n\n## Evidence\n\n{entries}\n{shortfalls}",
         encoding="utf-8",
     )
     return str(path)
@@ -205,6 +224,131 @@ def test_legacy_bullet_angles_still_parse(tmp_path):
     bank = write_bank(tmp_path, "- `platform-leader` — builds the paved road.")
     r = run("validate.py", "--lint-bank", "--bank", bank)
     assert r.returncode == 0, r.stderr
+
+
+# ── lint-bank: the entries themselves ─────────────────────────────────────
+
+ONE_ANGLE = "### angle: platform-leader\nclaim:  Builds the paved road.\nproof:  ev:0001, ev:0002\n"
+
+
+def lint(bank, *args):
+    return run("validate.py", "--lint-bank", "--bank", bank, *args)
+
+
+def test_lint_bank_catches_a_bad_confidence_value(tmp_path):
+    bank = write_bank(
+        tmp_path, ONE_ANGLE,
+        entries=entry("ev:0001", confidence="solid") + entry("ev:0002"),
+    )
+    r = lint(bank)
+    assert r.returncode != 0
+    assert "confidence is 'solid'" in r.stderr
+
+
+def test_lint_bank_catches_a_measured_entry_with_no_source(tmp_path):
+    bank = write_bank(
+        tmp_path, ONE_ANGLE,
+        entries=entry("ev:0001", confidence="measured", extra="source:     n/a\n")
+        + entry("ev:0002"),
+    )
+    r = lint(bank)
+    assert r.returncode != 0
+    assert "`measured` with no `source:`" in r.stderr
+    bank = write_bank(
+        tmp_path, ONE_ANGLE,
+        entries=entry("ev:0001", confidence="measured", extra="source:     Q3 review deck\n")
+        + entry("ev:0002"),
+    )
+    assert lint(bank).returncode == 0
+
+
+def test_lint_bank_catches_untagged_and_duplicate_entries(tmp_path):
+    bank = write_bank(
+        tmp_path, ONE_ANGLE,
+        entries=entry("ev:0001", tags="") + entry("ev:0002") + entry("ev:0002"),
+    )
+    r = lint(bank)
+    assert r.returncode != 0
+    assert "ev:0001 has no `tags:`" in r.stderr
+    assert "ev:0002 appears 2 times" in r.stderr
+
+
+def test_lint_bank_checks_roles_against_resume_yaml(tmp_path):
+    bank = write_bank(tmp_path, ONE_ANGLE)
+    ok = lint(bank, "--resume", os.path.join(FIX, "resume.yaml"))
+    assert ok.returncode == 0, ok.stderr
+    other = tmp_path / "resume.yaml"
+    other.write_text("employers:\n  - company: Other Ltd\n    title: X\n    dates: '2020'\n")
+    r = lint(bank, "--resume", str(other))
+    assert r.returncode != 0
+    assert "names no employer or institution from resume.yaml" in r.stderr
+    # An institution counts as canonical too.
+    edu = tmp_path / "resume-edu.yaml"
+    edu.write_text(
+        "employers: []\neducation:\n  - institution: Example Co\n"
+        "    qualification: Diploma\n    dates: '2019'\n"
+    )
+    assert lint(bank, "--resume", str(edu)).returncode == 0
+
+
+def test_lint_bank_wants_a_shortfalls_block_unless_entries_only(tmp_path):
+    bank = write_bank(tmp_path, ONE_ANGLE, shortfalls="## Shortfalls\n")
+    r = lint(bank)
+    assert r.returncode != 0
+    assert "Shortfalls" in r.stderr
+    assert lint(bank, "--entries-only").returncode == 0
+
+
+def test_entries_only_skips_angles_but_not_entries(tmp_path):
+    # Mid-interview: no angles yet, and nothing cites one. That is fine.
+    bank = write_bank(tmp_path, "", entry_angles="", shortfalls="")
+    assert lint(bank).returncode != 0
+    r = lint(bank, "--entries-only")
+    assert r.returncode == 0, r.stderr
+    assert "entries well-formed" in r.stderr
+    # A malformed entry still fails in that mode.
+    bank = write_bank(
+        tmp_path, "", shortfalls="",
+        entries=entry("ev:0001", angles="", extra="").replace("dates:      2021-03 → 2023-08\n", ""),
+    )
+    r = lint(bank, "--entries-only")
+    assert r.returncode != 0
+    assert "no `dates:`" in r.stderr
+
+
+def test_empty_bank_fails_lint(tmp_path):
+    bank = tmp_path / "bank.md"
+    bank.write_text("# Bank\n", encoding="utf-8")
+    r = lint(str(bank), "--entries-only")
+    assert r.returncode != 0
+    assert "no `### ev:NNNN` entries" in r.stderr
+
+
+# ── resume.yaml: education rows are canonical facts too ───────────────────
+
+
+def test_an_education_entry_must_match_resume_yaml(tmp_path):
+    resume = tmp_path / "resume.yaml"
+    resume.write_text(
+        "name: Pat Doe\nemployers:\n  - company: Example Co\n    title: Staff Engineer\n"
+        "    dates: \"2021-03 → 2023-08\"\neducation:\n  - institution: Example University\n"
+        "    qualification: BSc Computing\n    dates: \"2014-09 → 2017-06\"\n",
+        encoding="utf-8",
+    )
+    variant = tmp_path / "variant.yaml"
+    body = (
+        "angle: platform-leader\nsections:\n  - heading: Education\n    entries:\n"
+        "      - company: Example University\n        title: {title}\n"
+        "        dates: \"2014-09 → 2017-06\"\n        bullets:\n"
+        "          - text: \"Rebuilt the CI pipeline as a project.\"\n            ev: ev:0031\n"
+    )
+    variant.write_text(body.format(title="BSc Computing"), encoding="utf-8")
+    r = run("validate.py", str(variant), "--bank", BANK, "--resume", str(resume))
+    assert r.returncode == 0, r.stderr
+    variant.write_text(body.format(title="MSc Computing"), encoding="utf-8")
+    r = run("validate.py", str(variant), "--bank", BANK, "--resume", str(resume))
+    assert r.returncode != 0
+    assert "diverges from canonical resume.yaml" in r.stderr
 
 
 def test_variant_positioned_on_an_undeclared_angle_fails(tmp_path):
@@ -605,3 +749,73 @@ def test_grouped_skills_are_scored_by_item():
     rows = {r["keyword"]: r for r in score(jd, variant, None, load_ats_config(None))["keywords"]}
     assert rows["ci/cd"]["in_resume"]
     assert rows["incident response"]["in_resume"]
+
+
+# ── save.py: the one git call, with the template guard ────────────────────
+
+
+def git(*args, cwd):
+    return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=True)
+
+
+def make_repo(tmp_path, remote_name):
+    """A working copy whose origin is a bare repo named `remote_name`."""
+    bare = tmp_path / f"{remote_name}.git"
+    git("init", "-q", "--bare", "-b", "main", str(bare), cwd=tmp_path)
+    work = tmp_path / "work"
+    git("clone", "-q", str(bare), str(work), cwd=tmp_path)
+    git("config", "user.email", "t@example.com", cwd=work)
+    git("config", "user.name", "T", cwd=work)
+    git("checkout", "-q", "-b", "main", cwd=work)
+    (work / "README.md").write_text("seed\n", encoding="utf-8")
+    git("add", "-A", cwd=work)
+    git("commit", "-q", "-m", "seed", cwd=work)
+    git("push", "-q", "-u", "origin", "main", cwd=work)
+    return work, bare
+
+
+def test_save_guard_refuses_the_shared_template(tmp_path):
+    work, _bare = make_repo(tmp_path, "jobseeker-template")
+    r = run("save.py", "--guard", "--cwd", str(work))
+    assert r.returncode == 2
+    assert "Use this template" in r.stderr
+    (work / "profile").mkdir()
+    (work / "profile" / "goals.yaml").write_text("tracks: []\n", encoding="utf-8")
+    r = run("save.py", "setup: goals", "--cwd", str(work))
+    assert r.returncode == 2
+    # Nothing was committed.
+    assert git("status", "--porcelain", cwd=work).stdout.strip() != ""
+    assert "goals" not in git("log", "--oneline", cwd=work).stdout
+
+
+def test_save_commits_and_pushes_a_private_copy(tmp_path):
+    work, bare = make_repo(tmp_path, "my-jobseeker")
+    assert run("save.py", "--guard", "--cwd", str(work)).returncode == 0
+    (work / "profile").mkdir()
+    (work / "profile" / "goals.yaml").write_text("tracks: []\n", encoding="utf-8")
+    r = run("save.py", "setup: goals", "--cwd", str(work))
+    assert r.returncode == 0, r.stderr
+    assert "setup: goals" in git("log", "--oneline", "origin/main", cwd=work).stdout
+    # Nothing new: a clean exit, no empty commit.
+    r = run("save.py", "setup: goals again", "--cwd", str(work))
+    assert r.returncode == 0
+    assert "nothing to save" in r.stderr
+    assert "again" not in git("log", "--oneline", cwd=work).stdout
+
+
+def test_save_rebases_onto_a_moved_remote(tmp_path):
+    work, bare = make_repo(tmp_path, "my-jobseeker")
+    other = tmp_path / "other"
+    git("clone", "-q", str(bare), str(other), cwd=tmp_path)
+    git("config", "user.email", "o@example.com", cwd=other)
+    git("config", "user.name", "O", cwd=other)
+    (other / "elsewhere.md").write_text("from another session\n", encoding="utf-8")
+    git("add", "-A", cwd=other)
+    git("commit", "-q", "-m", "elsewhere", cwd=other)
+    git("push", "-q", "origin", "main", cwd=other)
+
+    (work / "local.md").write_text("from this session\n", encoding="utf-8")
+    r = run("save.py", "setup: local", "--cwd", str(work))
+    assert r.returncode == 0, r.stderr
+    log = git("log", "--oneline", "origin/main", cwd=work).stdout
+    assert "setup: local" in log and "elsewhere" in log

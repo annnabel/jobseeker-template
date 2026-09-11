@@ -28,7 +28,8 @@ LinkedIn, Indeed or anything behind a login; a missing requirement is a
 - `profile/evidence-bank.md`: quote and trim, never invent beyond a
   narrative; respect each entry's `confidence`. `## Angles` holds the
   positioning stances (claim, proof entries, tracks served).
-- `profile/resume.yaml`: canonical employers, titles, dates. Copy exactly.
+- `profile/resume.yaml`: the name and contact header, canonical employers,
+  titles, dates, and education. Copy exactly; never ask for what it holds.
 - `profile/voice.md`: tone, and the "write like a human" rules. `validate.py`
   fails on the banned list in `config.yaml → style`.
 - `profile/companies/<slug>.md` if present: the cover's hook lives here.

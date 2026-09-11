@@ -106,8 +106,7 @@ with nothing pasted brings it back up.
 
 ```
 python3 bin/tracker.py
-git add -A && git commit -q -m "apply: <company> · <title>" && git push -q origin main \
-  || (git pull -q --rebase origin main && git push -q origin main)
+python3 bin/save.py "apply: <company> · <title>"
 ```
 
 Close with the tailor's report for the role (angle and its proof entries,

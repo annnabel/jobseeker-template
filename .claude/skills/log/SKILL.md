@@ -29,8 +29,7 @@ mention once that `/prep` builds interview prep for it.
 
 ```
 python3 bin/tracker.py
-git add -A && git commit -q -m "log: <role> -> <status>" && git push -q origin main \
-  || (git pull -q --rebase origin main && git push -q origin main)
+python3 bin/save.py "log: <role> -> <status>"
 ```
 
 Don't narrate the saving. One line back: the new status and the next thing.
