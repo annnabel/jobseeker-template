@@ -24,6 +24,7 @@ ALLOWED = {
     "profile/README.md",
     "profile/.gitkeep",
     "profile/companies/.gitkeep",
+    "profile/intake/.gitkeep",
     "queue/.gitkeep",
     "state/seen/.gitkeep",
     "applied/.gitkeep",

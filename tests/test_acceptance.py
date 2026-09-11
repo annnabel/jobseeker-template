@@ -12,6 +12,8 @@ import os
 import subprocess
 import sys
 
+import pytest
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BIN = os.path.join(ROOT, "bin")
 FIX = os.path.join(ROOT, "tests", "fixtures")
@@ -819,3 +821,76 @@ def test_save_rebases_onto_a_moved_remote(tmp_path):
     assert r.returncode == 0, r.stderr
     log = git("log", "--oneline", "origin/main", cwd=work).stdout
     assert "setup: local" in log and "elsewhere" in log
+
+
+# ── intake.py: documents the user already has (setup step 1) ─────────────
+
+INTAKE_FIX = os.path.join(FIX, "intake")
+
+
+def test_intake_pdf_gets_a_text_twin(tmp_path):
+    pytest.importorskip("pypdf")
+    r = run("intake.py", os.path.join(INTAKE_FIX, "resume.pdf"), "--root", str(tmp_path))
+    assert r.returncode == 0, r.stderr
+    raw = tmp_path / "profile" / "intake" / "resume.pdf"
+    twin = tmp_path / "profile" / "intake" / "resume.txt"
+    assert raw.exists() and twin.exists()
+    text = twin.read_text(encoding="utf-8")
+    assert "Example Person" in text and "Northwind Traders" in text
+    assert "text  profile/intake/resume.txt" in r.stdout
+
+
+def test_intake_docx_gets_a_text_twin_with_tables(tmp_path):
+    docx = pytest.importorskip("docx")
+
+    d = docx.Document()
+    d.add_paragraph("Example Person")
+    d.add_paragraph("Regional Manager, Northwind Traders")
+    t = d.add_table(rows=1, cols=2)
+    t.rows[0].cells[0].text = "Dates"
+    t.rows[0].cells[1].text = "2019-03 to present"
+    src = tmp_path / "My Résumé (final).DOCX"
+    d.save(str(src))
+
+    r = run("intake.py", str(src), "--root", str(tmp_path))
+    assert r.returncode == 0, r.stderr
+    raw = tmp_path / "profile" / "intake" / "my-resume-final.docx"
+    twin = tmp_path / "profile" / "intake" / "my-resume-final.txt"
+    assert raw.exists() and twin.exists()
+    text = twin.read_text(encoding="utf-8")
+    assert "Northwind Traders" in text
+    assert "Dates | 2019-03 to present" in text
+
+
+def test_intake_copies_plain_text_as_is(tmp_path):
+    src = tmp_path / "cover letter.md"
+    src.write_text("Dear hiring team,\n\nI liked this one.\n", encoding="utf-8")
+    r = run("intake.py", str(src), "--root", str(tmp_path))
+    assert r.returncode == 0, r.stderr
+    copied = tmp_path / "profile" / "intake" / "cover-letter.md"
+    assert copied.read_text(encoding="utf-8") == src.read_text(encoding="utf-8")
+    r = run("intake.py", "--list", "--root", str(tmp_path))
+    assert r.stdout.strip() == "profile/intake/cover-letter.md"
+
+
+def test_intake_recognises_linkedin_connections_and_drops_the_preamble(tmp_path):
+    r = run("intake.py", os.path.join(INTAKE_FIX, "Connections.csv"), "--root", str(tmp_path))
+    assert r.returncode == 0, r.stderr
+    out = tmp_path / "profile" / "connections.csv"
+    lines = out.read_text(encoding="utf-8").splitlines()
+    assert lines[0].startswith("First Name,Last Name,")
+    assert lines[1].startswith("Example,Contact,")
+    assert not (tmp_path / "profile" / "intake").exists() or not any(
+        (tmp_path / "profile" / "intake").iterdir()
+    )
+
+
+def test_intake_refuses_what_it_cannot_read(tmp_path):
+    src = tmp_path / "photo.png"
+    src.write_bytes(b"\x89PNG\r\n")
+    r = run("intake.py", str(src), "--root", str(tmp_path))
+    assert r.returncode == 1
+    assert "paste the text" in r.stderr
+    r = run("intake.py", str(tmp_path / "missing.pdf"), "--root", str(tmp_path))
+    assert r.returncode == 1
+    assert "no such file" in r.stderr

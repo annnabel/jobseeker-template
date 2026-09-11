@@ -3,7 +3,8 @@
 ## The loop
 
 ```
-/setup   once: interview → profile/ (goals, facts, evidence bank, angles, voice, config)
+/setup   once: what they already have → interview → profile/ (goals, facts,
+         evidence bank, angles, voice, config)
 /apply   paste an ad → honest fit read → "draft it?" → tailored resume + cover,
          walked through together → saved as a draft
    ↓     the human applies by hand, in their own browser
@@ -20,6 +21,7 @@ answered and `[SHORTFALL]`s get read aloud).
 
 | Path | Holds | Written by |
 |---|---|---|
+| `profile/intake/` | Documents the user brought in: old resume, LinkedIn profile text, cover letters, ads. Raw, plus a text twin for PDF and Word. Provenance for seeded entries, never evidence on its own | `/setup` via `bin/intake.py` |
 | `profile/goals.yaml` | Career tracks: where the user wants to go | `/setup`, the user |
 | `profile/evidence-bank.md` | Every true accomplishment (`### ev:NNNN`), `## Angles`, `## Shortfalls` | `/setup`, gap answers |
 | `profile/resume.yaml` | Canonical facts: name and contact header, employers, education, each title and date exactly once | `/setup` |
@@ -79,6 +81,10 @@ hand submit · `applied` · `reply` · `screen` · `onsite` · `offer` ·
   bullet without an `ev:`.
 - `python3 bin/tracker.py` regenerates `tracker.csv`; `--stats` prints the
   funnel and callback rates by track, source and angle.
+- `python3 bin/intake.py <file>` copies a document the user dropped into the
+  chat into `profile/intake/`, writes a text twin for PDF and Word, and
+  routes a LinkedIn connections export to `profile/connections.csv` with the
+  preamble dropped. It reads files; it never interprets them.
 
 None of these use a model. Together they catch invention. They cannot catch
 stretching; the walkthrough does that.
