@@ -71,15 +71,18 @@ type commands like `/setup` and `/apply` into a chat; saving is automatic.
    hold your real career history.
 2. **Open it in Claude Code.** Go to [claude.ai/code](https://claude.ai/code)
    and connect your new private repository.
-3. **Run `/setup`.** Claude asks first about where you want to go (your
-   career tracks, about 20 minutes), then for the plain facts (employers,
-   titles, dates, how to reach you), then interviews you about your career
-   a few questions at a time to build your "evidence bank", the master list
-   of everything true about you that all future drafts draw from. Partway
-   through it asks you to paste a real ad, to check the bank against what
-   employers actually ask for. Budget a relaxed hour or three; every
-   section is saved as you go, so you can stop at any point and pick it up
-   later. Honest answers matter more than impressive ones, and not every
+3. **Run `/setup`.** Have your current resume handy, plus a cover letter
+   you liked and two or three job ads you'd apply to today; Claude asks for
+   these first and reads them so it can confirm instead of interrogate. Then
+   it asks where you want to go (your career tracks), checks the plain facts
+   it read (employers, titles, dates, how to reach you), and interviews you
+   about your career a few questions at a time to build your "evidence
+   bank", the master list of everything true about you that all future
+   drafts draw from. Partway through it checks the bank against one of your
+   ads, to see what employers actually ask for. A first pass takes about
+   half an hour; every section is saved as you go, so you can stop at any
+   point and pick it up later, and re-run `/setup` any time to add more.
+   Honest answers matter more than impressive ones, and not every
    accomplishment needs a number.
 4. **Try it.** Find a job ad anywhere, run `/apply`, paste it in.
 

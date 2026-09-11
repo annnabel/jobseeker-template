@@ -19,6 +19,7 @@
       "Bash(python3 bin/ats_score.py:*)",
       "Bash(python3 bin/tracker.py:*)",
       "Bash(python3 bin/save.py:*)",
+      "Bash(python3 bin/intake.py:*)",
       "Bash(python3 optional/sweep/bin/fetch.py:*)",
       "Bash(python3 optional/sweep/bin/seen.py:*)",
       "Bash(python3 -m pytest:*)",

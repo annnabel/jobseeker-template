@@ -15,7 +15,7 @@ jobs:
       # Dev tooling is pinned on purpose: an unpinned ruff changed the lint
       # step's meaning without a commit. Bump these deliberately.
       - name: Install dependencies
-        run: pip install pyyaml httpx pydantic "pytest==9.1.1" "ruff==0.16.3"
+        run: pip install pyyaml httpx pydantic python-docx pypdf "pytest==9.1.1" "ruff==0.16.3"
       - name: Lint
         run: ruff check --output-format=github bin/ tests/ optional/
       - name: Tests (core + optional sweep)

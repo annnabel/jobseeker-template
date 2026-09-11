@@ -6,11 +6,12 @@ knows about you:
 
 | File | What it is | Created by |
 |---|---|---|
+| `intake/` | What you already had when you started: your old resume, LinkedIn profile text, cover letters, the ads you brought in. Kept as you gave them, so every fact seeded from them can say where it came from | `/setup` |
 | `goals.yaml` | **Where you want to go**: one to three career tracks, and whether each is a change of direction. Written first, because it decides what everything else is measured against | `/setup` |
 | `resume.yaml` | The canonical facts: your name and contact details, every employer, title and date, and your education, exactly once. Written second, because every evidence entry hangs off one of these jobs | `/setup` |
 | `evidence-bank.md` | Your "master resume": every job, project and accomplishment, each with an ID and an honesty rating. **Where you have been.** Its `## Angles` block holds your positioning: each one a claim about what you're for and the evidence that proves it, the **argument** a tailored resume makes | `/setup` |
 | `voice.md` | A short description of how you write, so drafts sound like you | `/setup` |
-| `config.yaml` | Your preferences: salary floor, locations, dealbreakers, cover-letter length | `/setup` |
+| `config.yaml` | Your preferences: salary floor, locations, dealbreakers, cover-letter length. Asked alongside your goals | `/setup` |
 | `companies/<name>.md` | Three honest lines about why you'd join a company you care about, plus anything Claude researched, with sources | you, `/apply`, `/prep` |
 | `connections.csv` | (Optional) your LinkedIn connections export, for spotting referral paths | you |
 | `targets.yaml` | (Only if you switch on the optional sweep) the companies whose job boards it watches | you, per `optional/sweep/README.md` |
