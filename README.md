@@ -56,35 +56,37 @@ MIT licensed. Copy it, change it, keep it.
 
 ## What you need
 
-- A free **GitHub account**. Your private copy of this system lives there.
-- **Claude Code**, easiest at [claude.ai/code](https://claude.ai/code) on a
-  paid Claude plan. Nothing to install.
+- A free **GitHub account**. Your private copy of this system lives there,
+  and Claude saves your work back to it.
+- A paid **Claude plan** with Claude Code on the web at
+  [claude.ai/code](https://claude.ai/code). Nothing to install, no API key.
 
-You do not need to know how to code, and you never need to touch git. You
-type commands like `/setup` and `/apply` into a chat; saving is automatic.
+You do not need to know how to code, and you never touch git. You type
+commands like `/setup` and `/apply` into a chat; saving is automatic.
 
 ## Set it up (once)
 
-1. **Make your own private copy.** On this repository's GitHub page click
-   **Use this template → Create a new repository**. Name it something like
-   `my-jobseeker` and set it to **Private**. Private matters: your copy will
+1. **Copy the template.** On this repository's GitHub page click
+   **Use this template → Create a new repository**. Name it (for example
+   `my-jobseeker`) and choose **Private**. Private matters: your copy will
    hold your real career history.
-2. **Open it in Claude Code.** Go to [claude.ai/code](https://claude.ai/code)
-   and connect your new private repository.
-3. **Run `/setup`.** Have your current resume handy, plus a cover letter
-   you liked and two or three job ads you'd apply to today; Claude asks for
-   these first and reads them so it can confirm instead of interrogate. Then
-   it asks where you want to go (your career tracks), checks the plain facts
-   it read (employers, titles, dates, how to reach you), and interviews you
-   about your career a few questions at a time to build your "evidence
-   bank", the master list of everything true about you that all future
-   drafts draw from. Partway through it checks the bank against one of your
-   ads, to see what employers actually ask for. A first pass takes about
-   half an hour; every section is saved as you go, so you can stop at any
-   point and pick it up later, and re-run `/setup` any time to add more.
-   Honest answers matter more than impressive ones, and not every
-   accomplishment needs a number.
-4. **Try it.** Find a job ad anywhere, run `/apply`, paste it in.
+2. **Connect GitHub to Claude.** Open [claude.ai/code](https://claude.ai/code)
+   and, when prompted, install the Claude GitHub app and grant it access to
+   the repository you just created. This is what lets Claude read your copy
+   and save changes to it. If GitHub is already connected, add the new
+   repository in Claude's settings under **Connectors → GitHub**.
+3. **Open the repository.** In claude.ai/code pick your new repository and
+   start a session. The first start installs its own tools; wait for the
+   prompt before typing.
+4. **Run `/setup`.** Have your current resume handy, plus a cover letter you
+   liked and two or three job ads you'd apply to today. Claude reads them,
+   then interviews you a few questions at a time: where you want to go, the
+   plain facts (employers, titles, dates), and what you've actually done,
+   which becomes the evidence bank every draft draws from. A first pass takes
+   about half an hour. Everything is saved as you go, so you can stop at any
+   point and re-run `/setup` later to continue or add more. Honest answers
+   matter more than impressive ones.
+5. **Try it.** Find a job ad anywhere, run `/apply`, and paste it in.
 
 Lost at any point? Type `/next`.
 
